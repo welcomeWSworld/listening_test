@@ -184,6 +184,31 @@
   .study-list{display:grid;gap:9px;}
   .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px;}
 
+  /* flashcard */
+  .reveal-box{margin-bottom:16px;border:1px solid var(--line);border-radius:16px;padding:24px 18px;min-height:118px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;
+    background:linear-gradient(180deg,var(--surface),var(--ink-2));transition:border-color .15s;}
+  .reveal-box:hover{border-color:var(--brass);}
+  .reveal-q{font-family:"Cormorant Garamond",serif;font-size:40px;color:var(--brass-soft);line-height:1;}
+  .reveal-hint{font-size:12px;color:var(--muted);margin-top:10px;}
+  #revealBack{animation:flipIn .35s ease;}
+  @keyframes flipIn{from{opacity:0;transform:rotateX(-90deg);}to{opacity:1;transform:rotateX(0);}}
+  .rb-eyebrow{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .rb-title{font-family:"Cormorant Garamond",serif;font-size:26px;line-height:1.15;color:var(--ivory);}
+  .rb-ko{font-size:14px;color:var(--brass-soft);margin-top:6px;}
+  .rb-badges{margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+  .rb-pin{margin-top:16px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--muted);border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600;transition:.14s;}
+  .rb-pin.on{color:var(--brass);border-color:var(--brass);background:rgba(201,162,75,.12);}
+  .rb-pin:hover{color:var(--brass-soft);}
+  .card-nav{display:flex;gap:9px;}
+  .nav-btn{flex:1;padding:13px;border-radius:12px;font-size:13.5px;font-weight:600;transition:.15s;
+    background:var(--surface);border:1px solid var(--line);color:var(--ivory);}
+  .nav-btn:hover:not(:disabled){border-color:var(--brass);}
+  .nav-btn:disabled{opacity:.35;cursor:default;}
+  .nav-btn.flip{flex:1.4;background:var(--brass);color:#231a07;border:none;font-weight:700;}
+  .nav-btn.flip:hover{background:var(--brass-soft);}
+
   footer{margin-top:30px;text-align:center;font-size:11px;color:var(--muted);opacity:.6;line-height:1.6;}
   @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
 </style>
@@ -206,8 +231,19 @@
     <div class="opt-row">
       <div class="opt-label">모드</div>
       <div class="seg" id="modeSeg">
-        <button data-mode="quiz" aria-pressed="true">시험 모드</button>
-        <button data-mode="study" aria-pressed="false">연습 모드</button>
+        <button data-mode="quiz" aria-pressed="true">시험</button>
+        <button data-mode="card" aria-pressed="false">암기</button>
+        <button data-mode="study" aria-pressed="false">연습</button>
+      </div>
+    </div>
+
+    <div id="cardOpts" class="hidden">
+      <div class="opt-row">
+        <div class="opt-label">카드 범위</div>
+        <div class="seg" id="scopeSeg">
+          <button data-scope="all" aria-pressed="true">전체 58곡</button>
+          <button data-scope="pin" aria-pressed="false">★ 핀한 곡만</button>
+        </div>
       </div>
     </div>
 
@@ -264,6 +300,48 @@
     <div class="options" id="options"></div>
     <div class="feedback" id="feedback"></div>
     <button class="next-btn hidden" id="nextBtn">다음 곡 →</button>
+  </section>
+
+  <!-- ===== FLASHCARD ===== -->
+  <section id="screen-card" class="hidden">
+    <div class="topbar">
+      <span class="label" id="cCounter">Card 1</span>
+      <button class="quit" id="cardQuit">그만두기</button>
+    </div>
+    <div class="progress"><i id="cProg" style="width:0%"></i></div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="cStage">
+        <span class="tag">Flashcard</span>
+        <button class="play-fab" id="cFab" disabled aria-label="재생">
+          <svg viewBox="0 0 24 24" id="cFabIcon"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="equalizer" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <span class="hint" id="cHint">불러오는 중…</span>
+      </div>
+    </div>
+
+    <div class="transport">
+      <div class="t-bar" id="cBar"><div class="t-fill" id="cFill"></div><div class="t-handle" id="cHandle"></div></div>
+      <div class="t-times"><span id="cCur">0:00</span><span id="cDur"></span></div>
+      <div class="t-pcts" id="cPcts"></div>
+    </div>
+
+    <p id="cNotice" class="player-notice hidden"></p>
+
+    <div class="reveal-box" id="revealBox">
+      <div id="revealFront">
+        <div class="reveal-q">♪&nbsp;&nbsp;?</div>
+        <div class="reveal-hint">들어보고 떠올린 뒤 · 탭하여 정답 확인</div>
+      </div>
+      <div id="revealBack" class="hidden"></div>
+    </div>
+
+    <div class="card-nav">
+      <button id="prevCard" class="nav-btn">← 이전</button>
+      <button id="flipBtn" class="nav-btn flip">정답 보기</button>
+      <button id="nextCard" class="nav-btn">다음 →</button>
+    </div>
   </section>
 
   <!-- ===== RESULT ===== -->
@@ -392,7 +470,7 @@ const $=s=>document.querySelector(s);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 function fmt(s){s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
   return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
-function show(id){['start','quiz','result','study'].forEach(s=>$('#screen-'+s).classList.toggle('hidden',s!==id));
+function show(id){['start','quiz','card','result','study'].forEach(s=>$('#screen-'+s).classList.toggle('hidden',s!==id));
   currentScreen=id;window.scrollTo({top:0,behavior:'smooth'});}
 let currentScreen='start';
 
@@ -433,12 +511,13 @@ function onErr(e){awaiting=false;clearTimeout(watchdog);
     :'이 환경에서는 유튜브 재생이 막혀요. 파일을 무료 호스팅(app.netlify.com/drop)에 올려 https 주소로 열면 정상 재생돼요.');}
 function startWatchdog(){awaiting=true;clearTimeout(watchdog);
   watchdog=setTimeout(()=>{if(awaiting)notice('소리가 안 나오나요? 채팅 미리보기·로컬 파일에선 막혀요. app.netlify.com/drop 에 올려 https 주소로 여세요.');},3500);}
-function notice(m){const el=$('#playerNotice');if(el){el.textContent=m;el.classList.remove('hidden');}}
-function clearNotice(){const el=$('#playerNotice');if(el)el.classList.add('hidden');}
+function noticeEl(){return $(currentScreen==='card'?'#cNotice':'#playerNotice');}
+function notice(m){const el=noticeEl();if(el){el.textContent=m;el.classList.remove('hidden');}}
+function clearNotice(){['#playerNotice','#cNotice'].forEach(s=>{const el=$(s);if(el)el.classList.add('hidden');});}
 
 /* start-second logic incl. random/fixed */
 let startMode='normal';
-function startSecondsFor(p){ if(startMode==='random'&&!p.fixed)return null; return p.start||0; }
+function startSecondsFor(p){ if(currentScreen!=='card'&&startMode==='random'&&!p.fixed)return null; return p.start||0; }
 
 /* ===================== TRANSPORT ===================== */
 const T={
@@ -503,23 +582,32 @@ function wireTransport(r){
 }
 const quizRefs={fab:'#qFab',icon:'#qFabIcon',bar:'#qBar',fill:'#qFill',handle:'#qHandle',cur:'#qCur',dur:'#qDur',pcts:'#qPcts',stage:'#qStage',hint:'#qHint',title:null,hideDur:true};
 const studyRefs={fab:'#sFab',icon:'#sFabIcon',bar:'#sBar',fill:'#sFill',handle:'#sHandle',cur:'#sCur',dur:'#sDur',pcts:'#sPcts',stage:null,hint:null,title:'#sTitle',hideDur:false};
-wireTransport(quizRefs);wireTransport(studyRefs);
+const cardRefs={fab:'#cFab',icon:'#cFabIcon',bar:'#cBar',fill:'#cFill',handle:'#cHandle',cur:'#cCur',dur:'#cDur',pcts:'#cPcts',stage:'#cStage',hint:'#cHint',title:null,hideDur:true};
+wireTransport(quizRefs);wireTransport(studyRefs);wireTransport(cardRefs);
 
 function stopAudio(){if(ytReady){try{player.stopVideo();}catch(_){}}T.playing=false;T.loadedId=null;}
 
 /* ===================== START SCREEN ===================== */
-let mode='quiz',count=20;
+let mode='quiz',count=20,cardScope='all';
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.mode;
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));
   $('#quizOpts').classList.toggle('hidden',mode!=='quiz');
-  $('#startBtn').textContent=mode==='quiz'?'시험 시작':'연습 시작';});
+  $('#cardOpts').classList.toggle('hidden',mode!=='card');
+  $('#startBtn').textContent=mode==='quiz'?'시험 시작':mode==='card'?'암기 시작':'연습 시작';});
 $('#startSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;startMode=b.dataset.start;
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#countSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   count=b.dataset.count==='all'?Infinity:parseInt(b.dataset.count,10);
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#scopeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cardScope=b.dataset.scope;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#startBtn').addEventListener('click',()=>{
   if(mode==='study'){openStudy();}
+  else if(mode==='card'){
+    const pool=cardScope==='pin'?[...pins].map(idxOf).filter(i=>i>=0):[...PIECES.keys()];
+    if(!pool.length){alert('아직 ★ 핀한 곡이 없어요. 연습/시험에서 곡을 핀해보세요.');return;}
+    startCards(pool);
+  }
   else{startQuiz([...PIECES.keys()],count,false);}
 });
 
@@ -571,7 +659,56 @@ function choose(picked,correct,btn,box){
 }
 $('#quitBtn').addEventListener('click',()=>{stopAudio();show('start');});
 
-/* ===================== RESULT ===================== */
+/* ===================== FLASHCARD (암기) ===================== */
+let cardOrder=[],cIndex=0,flipped=false;
+function startCards(pool){
+  cardOrder=shuffle(pool);cIndex=0;
+  T.use(cardRefs);$('#cFab').disabled=!ytReady;show('card');loadCard();
+}
+function loadCard(){
+  stopAudio();
+  const piece=PIECES[cardOrder[cIndex]];const total=cardOrder.length;
+  T.setPiece(piece);
+  $('#cCounter').textContent=`Card ${cIndex+1} / ${total}`;
+  $('#cProg').style.width=`${((cIndex+1)/total)*100}%`;
+  $('#cHint').textContent=ytReady?'재생을 눌러 들어보세요':'불러오는 중…';
+  clearNotice();
+  flipped=false;renderFlip();
+  $('#prevCard').disabled=cIndex===0;
+  $('#nextCard').textContent=(cIndex+1<total)?'다음 →':'다시 섞기 ⟳';
+}
+function renderFlip(){
+  const piece=PIECES[cardOrder[cIndex]];
+  const front=$('#revealFront'),back=$('#revealBack');
+  if(flipped){
+    front.classList.add('hidden');back.classList.remove('hidden');
+    const badges=[];
+    if(piece.start)badges.push(`<span class="badge fix">${fmt(piece.start)} 부터</span>`);
+    if(piece.fixed)badges.push(`<span class="badge fix">악장 고정</span>`);
+    const on=pins.has(piece.id);
+    back.innerHTML=`<div class="rb-eyebrow">Answer</div>
+      <div class="rb-title">${label(piece)}</div>
+      ${piece.ko?`<div class="rb-ko">${piece.ko}</div>`:''}
+      ${badges.length?`<div class="rb-badges">${badges.join('')}</div>`:''}
+      <button class="rb-pin ${on?'on':''}" id="cardPin">${on?'★ 핀됨':'☆ 핀하기'}</button>`;
+    $('#cardPin').onclick=ev=>{ev.stopPropagation();togglePin(piece.id);renderFlip();};
+    $('#flipBtn').textContent='정답 가리기';
+  }else{
+    front.classList.remove('hidden');back.classList.add('hidden');
+    $('#flipBtn').textContent='정답 보기';
+  }
+}
+function flip(){flipped=!flipped;renderFlip();}
+$('#revealBox').addEventListener('click',e=>{if(e.target.closest('#cardPin'))return;flip();});
+$('#flipBtn').addEventListener('click',flip);
+$('#prevCard').addEventListener('click',()=>{if(cIndex>0){cIndex--;loadCard();}});
+$('#nextCard').addEventListener('click',()=>{
+  if(cIndex+1<cardOrder.length){cIndex++;loadCard();}
+  else{cardOrder=shuffle(cardOrder);cIndex=0;loadCard();}
+});
+$('#cardQuit').addEventListener('click',()=>{stopAudio();show('start');});
+
+
 function showResult(){
   stopAudio();show('result');
   const total=order.length;
