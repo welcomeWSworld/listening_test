@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Listening Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14121f;--ink-2:#1c1830;--surface:#221d35;--surface-2:#2a2440;--line:#3a3252;
+    --ivory:#efe6d2;--muted:#9a8fb0;--brass:#c9a24b;--brass-soft:#dcc07e;
+    --green:#73b089;--rose:#cf8585;--shadow:0 18px 50px -18px rgba(0,0,0,.75);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;color:var(--ivory);font-family:"Noto Sans KR",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;display:flex;justify-content:center;padding:24px 14px 64px;
+    background:
+      radial-gradient(1100px 700px at 50% -10%, #241d3a 0%, rgba(36,29,58,0) 60%),
+      radial-gradient(900px 600px at 90% 110%, #1a1530 0%, rgba(26,21,48,0) 55%),
+      var(--ink);
+  }
+  .wrap{width:100%;max-width:640px;}
+  .eyebrow{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--brass);font-weight:700;}
+  .display{font-family:"Cormorant Garamond",serif;font-weight:500;line-height:1.02;}
+  .card{background:linear-gradient(180deg,var(--surface),var(--ink-2));border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);}
+  button{font-family:inherit;cursor:pointer;}
+  .hidden{display:none !important;}
+
+  /* start */
+  .hero{text-align:center;padding:44px 24px 32px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(to bottom,transparent 0 27px,rgba(201,162,75,.06) 27px 28px);
+    -webkit-mask-image:radial-gradient(circle at 50% 36%,#000 0%,transparent 72%);mask-image:radial-gradient(circle at 50% 36%,#000 0%,transparent 72%);}
+  .hero>*{position:relative;}
+  .seal-emblem{width:62px;height:62px;margin:0 auto 16px;border-radius:50%;border:1.5px solid var(--brass);
+    display:grid;place-items:center;color:var(--brass-soft);font-size:28px;box-shadow:inset 0 0 22px rgba(201,162,75,.18);}
+  .hero h1{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(42px,11vw,66px);margin:4px 0 2px;}
+  .hero .sub-ko{font-size:14px;color:var(--muted);margin:0 0 22px;}
+  .seg{display:inline-flex;gap:6px;background:var(--ink-2);border:1px solid var(--line);padding:5px;border-radius:999px;margin:0 auto;}
+  .seg button{background:transparent;color:var(--muted);border:none;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:500;transition:.16s;white-space:nowrap;}
+  .seg button[aria-pressed="true"]{background:var(--brass);color:#231a07;font-weight:700;}
+  .opt-row{margin:18px 0 0;}
+  .opt-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .start-btn{margin-top:26px;background:var(--brass);color:#231a07;border:none;padding:15px 40px;border-radius:999px;
+    font-size:15px;font-weight:700;transition:.18s;box-shadow:0 10px 26px -10px rgba(201,162,75,.7);}
+  .start-btn:hover{background:var(--brass-soft);transform:translateY(-1px);}
+  .pin-entry{margin-top:18px;}
+  .pin-entry button{background:transparent;border:1px solid rgba(201,162,75,.4);color:var(--brass-soft);
+    padding:9px 18px;border-radius:999px;font-size:13px;font-weight:600;transition:.16s;}
+  .pin-entry button:hover{background:rgba(201,162,75,.12);}
+  .pieces-note{margin-top:20px;font-size:12px;color:var(--muted);}
+
+  /* topbar / progress */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .topbar .label{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);}
+  .quit{background:none;border:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+  .progress{height:4px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:20px;}
+  .progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--brass),var(--brass-soft));transition:width .4s ease;}
+
+  /* player stage */
+  .stage-wrap{position:relative;margin-bottom:14px;}
+  #yt-host{position:absolute;inset:0;border-radius:18px;overflow:hidden;z-index:1;}
+  #yt-host iframe{width:100%;height:100%;border:0;}
+  .stage{position:relative;z-index:2;height:180px;border-radius:18px;overflow:hidden;border:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    background:repeating-linear-gradient(to bottom,transparent 0 26px,rgba(201,162,75,.07) 26px 27px),linear-gradient(160deg,#2b2442,#191429);}
+  .stage .tag{position:absolute;top:13px;left:15px;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);}
+  .play-fab{width:70px;height:70px;border-radius:50%;border:1.5px solid var(--brass);color:var(--brass-soft);display:grid;place-items:center;transition:.16s;
+    background:radial-gradient(circle at 50% 38%,#332a4d,#1d1830);box-shadow:0 12px 28px -12px rgba(0,0,0,.8),inset 0 0 18px rgba(201,162,75,.16);}
+  .play-fab:hover{transform:scale(1.04);color:#fff;}
+  .play-fab svg{width:28px;height:28px;}
+  .play-fab:disabled{opacity:.4;cursor:wait;}
+  .equalizer{display:flex;align-items:flex-end;gap:5px;height:26px;}
+  .equalizer span{width:4px;height:7px;border-radius:2px;background:var(--brass);opacity:.5;transform-origin:bottom;}
+  .stage.playing .equalizer span{animation:bounce 1s ease-in-out infinite;opacity:1;}
+  .equalizer span:nth-child(1){animation-delay:0s}.equalizer span:nth-child(2){animation-delay:.12s}
+  .equalizer span:nth-child(3){animation-delay:.24s}.equalizer span:nth-child(4){animation-delay:.36s}
+  .equalizer span:nth-child(5){animation-delay:.18s}.equalizer span:nth-child(6){animation-delay:.30s}
+  .equalizer span:nth-child(7){animation-delay:.06s}
+  @keyframes bounce{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(2.6)}}
+  .stage .hint{font-size:12px;color:var(--muted);}
+
+  /* transport (seek) */
+  .transport{margin-bottom:18px;}
+  .t-bar{position:relative;height:18px;display:flex;align-items:center;cursor:pointer;touch-action:none;}
+  .t-bar::before{content:"";position:absolute;left:0;right:0;height:4px;border-radius:99px;background:var(--line);}
+  .t-fill{position:absolute;left:0;height:4px;border-radius:99px;background:linear-gradient(90deg,var(--brass),var(--brass-soft));width:0%;}
+  .t-handle{position:absolute;left:0%;width:13px;height:13px;border-radius:50%;background:var(--brass-soft);transform:translateX(-50%);box-shadow:0 0 0 4px rgba(201,162,75,.18);}
+  .t-times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums;}
+  .t-pcts{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px;}
+  .pct-btn{flex:1;min-width:34px;background:var(--surface);border:1px solid var(--line);color:var(--muted);
+    border-radius:7px;padding:6px 0;font-size:11px;font-weight:600;transition:.13s;}
+  .pct-btn:hover{border-color:var(--brass);color:var(--ivory);}
+
+  .player-notice{margin:0 0 16px;padding:11px 14px;border-radius:10px;font-size:12.5px;line-height:1.55;text-align:center;
+    color:var(--brass-soft);background:rgba(201,162,75,.1);border:1px solid rgba(201,162,75,.35);}
+
+  /* question */
+  .q-prompt{font-size:15px;font-weight:500;text-align:center;margin:6px 0 16px;}
+  .options{display:grid;gap:10px;}
+  .opt{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);color:var(--ivory);
+    border-radius:12px;padding:14px 15px;transition:.14s;display:flex;align-items:center;gap:12px;}
+  .opt:hover:not(:disabled){border-color:var(--brass);background:var(--surface-2);}
+  .opt .marker{flex:none;width:25px;height:25px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;
+    font-family:"Cormorant Garamond",serif;font-size:14px;color:var(--muted);}
+  .opt .o-main{font-weight:500;font-size:14px;line-height:1.3;}
+  .opt .o-ko{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:var(--green);background:rgba(115,176,137,.13);}
+  .opt.correct .marker{border-color:var(--green);color:var(--green);}
+  .opt.wrong{border-color:var(--rose);background:rgba(207,133,133,.12);}
+  .opt.wrong .marker{border-color:var(--rose);color:var(--rose);}
+  .feedback{margin-top:16px;text-align:center;min-height:22px;}
+  .feedback .verdict{font-family:"Cormorant Garamond",serif;font-size:22px;}
+  .feedback .verdict.ok{color:var(--green);}.feedback .verdict.no{color:var(--rose);}
+  .feedback .answer{font-size:13px;color:var(--muted);margin-top:4px;}
+  .feedback .pinned-note{font-size:11.5px;color:var(--brass-soft);margin-top:6px;}
+  .next-btn{margin-top:16px;width:100%;background:var(--brass);color:#231a07;border:none;padding:14px;border-radius:12px;font-size:14px;font-weight:700;transition:.18s;}
+  .next-btn:hover{background:var(--brass-soft);}
+
+  /* result */
+  .result-head{text-align:center;padding:34px 20px 8px;}
+  .score-big{font-family:"Cormorant Garamond",serif;font-size:clamp(58px,17vw,90px);line-height:1;}
+  .score-big small{font-size:.4em;color:var(--muted);}
+  .score-msg{color:var(--muted);font-size:14px;margin-top:10px;}
+  .result-actions{display:flex;gap:10px;margin-top:24px;}
+  .result-actions button{flex:1;padding:14px;border-radius:12px;font-weight:700;font-size:13.5px;transition:.18s;}
+  .btn-primary{background:var(--brass);color:#231a07;border:none;}
+  .btn-primary:hover{background:var(--brass-soft);}
+  .btn-ghost{background:transparent;color:var(--brass);border:1px solid var(--brass);}
+  .btn-ghost:hover{background:var(--brass);color:#231a07;}
+  .review{margin-top:24px;display:grid;gap:9px;}
+
+  /* row (shared review + study) */
+  .row{display:flex;align-items:center;gap:11px;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface);}
+  .row .num{flex:none;width:27px;height:27px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;
+    font-family:"Cormorant Garamond",serif;font-size:13px;color:var(--brass-soft);}
+  .row .dot{flex:none;width:9px;height:9px;border-radius:50%;}
+  .row .dot.ok{background:var(--green);}.row .dot.no{background:var(--rose);}
+  .row .body{flex:1;min-width:0;}
+  .row .r-title{font-size:13.5px;font-weight:500;}
+  .row .r-sub{font-size:11.5px;color:var(--muted);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .badge{font-size:10px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--muted);}
+  .badge.fix{color:var(--brass-soft);border-color:rgba(201,162,75,.4);}
+  .pin-star{flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);
+    color:var(--muted);display:grid;place-items:center;font-size:16px;transition:.14s;}
+  .pin-star.on{color:var(--brass);border-color:var(--brass);background:rgba(201,162,75,.12);}
+  .pin-star:hover{color:var(--brass-soft);}
+  .mini-play{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);
+    color:var(--brass-soft);display:grid;place-items:center;transition:.14s;}
+  .mini-play:hover{border-color:var(--brass);color:#fff;}
+  .mini-play.playing{border-color:var(--brass);color:var(--brass);}
+  .mini-play svg{width:15px;height:15px;}
+
+  /* study */
+  .np{position:sticky;top:8px;z-index:5;margin-bottom:16px;padding:13px 14px;border-radius:14px;
+    background:linear-gradient(180deg,var(--surface-2),var(--surface));border:1px solid var(--line);box-shadow:var(--shadow);}
+  .np-top{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+  .np-fab{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--brass);color:var(--brass-soft);
+    display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,#332a4d,#1d1830);transition:.15s;}
+  .np-fab:hover{color:#fff;}.np-fab svg{width:20px;height:20px;}
+  .np-fab:disabled{opacity:.4;}
+  .np-title{flex:1;min-width:0;font-size:13.5px;font-weight:500;line-height:1.3;}
+  .np-title small{display:block;color:var(--muted);font-size:11.5px;font-weight:400;margin-top:1px;}
+  .study-controls{display:flex;flex-direction:column;gap:11px;margin-bottom:16px;}
+  .study-controls .line1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .search{flex:1;min-width:140px;background:var(--ink-2);border:1px solid var(--line);color:var(--ivory);
+    border-radius:10px;padding:10px 13px;font-size:13px;font-family:inherit;}
+  .search::placeholder{color:var(--muted);}
+  .filter-seg{display:inline-flex;gap:5px;background:var(--ink-2);border:1px solid var(--line);padding:4px;border-radius:999px;}
+  .filter-seg button{background:transparent;border:none;color:var(--muted);padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:500;transition:.14s;}
+  .filter-seg button[aria-pressed="true"]{background:var(--brass);color:#231a07;font-weight:700;}
+  .study-controls .line2{display:flex;gap:8px;}
+  .study-controls .line2 button{flex:1;padding:11px;border-radius:10px;font-size:12.5px;font-weight:600;transition:.15s;}
+  .pin-quiz{background:rgba(201,162,75,.14);border:1px solid var(--brass);color:var(--brass-soft);}
+  .pin-quiz:hover{background:rgba(201,162,75,.24);}
+  .pin-quiz:disabled{opacity:.4;cursor:default;}
+  .pin-clear{background:transparent;border:1px solid var(--line);color:var(--muted);}
+  .pin-clear:hover{border-color:var(--rose);color:var(--rose);}
+  .study-list{display:grid;gap:9px;}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 10px;}
+
+  footer{margin-top:30px;text-align:center;font-size:11px;color:var(--muted);opacity:.6;line-height:1.6;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- hidden, covered player (shared) -->
+  <div style="position:fixed;width:1px;height:1px;left:-10px;top:-10px;overflow:hidden;opacity:0;pointer-events:none;">
+    <div id="yt-host"></div>
+  </div>
+
+  <!-- ===== START ===== -->
+  <section id="screen-start" class="card hero">
+    <div class="seal-emblem">♪</div>
+    <div class="eyebrow">Final Exam · 58 Pieces</div>
+    <h1 class="display">Listening Test</h1>
+    <p class="sub-ko">제목을 가린 채 소리만 듣고 곡을 맞혀보세요</p>
+
+    <div class="opt-row">
+      <div class="opt-label">모드</div>
+      <div class="seg" id="modeSeg">
+        <button data-mode="quiz" aria-pressed="true">시험 모드</button>
+        <button data-mode="study" aria-pressed="false">연습 모드</button>
+      </div>
+    </div>
+
+    <div id="quizOpts">
+      <div class="opt-row">
+        <div class="opt-label">재생 시작</div>
+        <div class="seg" id="startSeg">
+          <button data-start="normal" aria-pressed="true">처음(지정 구간)부터</button>
+          <button data-start="random" aria-pressed="false">무작위 지점</button>
+        </div>
+      </div>
+      <div class="opt-row">
+        <div class="opt-label">문제 수</div>
+        <div class="seg" id="countSeg">
+          <button data-count="10" aria-pressed="false">10곡</button>
+          <button data-count="20" aria-pressed="true">20곡</button>
+          <button data-count="all" aria-pressed="false">전체</button>
+        </div>
+      </div>
+    </div>
+
+    <div><button class="start-btn" id="startBtn">시작하기</button></div>
+    <div class="pin-entry hidden" id="pinEntry"></div>
+    <p class="pieces-note">★로 핀한 곡은 ‘오답노트’처럼 따로 모아 연습할 수 있어요 · 틀린 곡은 자동으로 핀돼요</p>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section id="screen-quiz" class="hidden">
+    <div class="topbar">
+      <span class="label" id="qCounter">Question 1</span>
+      <button class="quit" id="quitBtn">그만두기</button>
+    </div>
+    <div class="progress"><i id="progBar" style="width:0%"></i></div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="qStage">
+        <span class="tag" id="qTag">Now Sealed</span>
+        <button class="play-fab" id="qFab" disabled aria-label="재생">
+          <svg viewBox="0 0 24 24" id="qFabIcon"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="equalizer" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <span class="hint" id="qHint">불러오는 중…</span>
+      </div>
+    </div>
+
+    <div class="transport">
+      <div class="t-bar" id="qBar"><div class="t-fill" id="qFill"></div><div class="t-handle" id="qHandle"></div></div>
+      <div class="t-times"><span id="qCur">0:00</span><span id="qDur"></span></div>
+      <div class="t-pcts" id="qPcts"></div>
+    </div>
+
+    <p id="playerNotice" class="player-notice hidden"></p>
+    <p class="q-prompt">지금 들리는 곡은 무엇일까요?</p>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn hidden" id="nextBtn">다음 곡 →</button>
+  </section>
+
+  <!-- ===== RESULT ===== -->
+  <section id="screen-result" class="hidden">
+    <div class="card result-head">
+      <div class="eyebrow">Score</div>
+      <div class="score-big"><span id="scoreNum">0</span><small id="scoreDen"> / 0</small></div>
+      <div class="score-msg" id="scoreMsg"></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" id="restartBtn">다시 풀기</button>
+      <button class="btn-ghost" id="pinQuizBtn2">★ 핀한 곡 연습</button>
+    </div>
+    <div class="review" id="review"></div>
+  </section>
+
+  <!-- ===== STUDY ===== -->
+  <section id="screen-study" class="hidden">
+    <div class="topbar">
+      <span class="label">Study · 58 Pieces</span>
+      <button class="quit" id="studyQuit">처음으로</button>
+    </div>
+
+    <div class="np">
+      <div class="np-top">
+        <button class="np-fab" id="sFab" disabled aria-label="재생">
+          <svg viewBox="0 0 24 24" id="sFabIcon"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="np-title" id="sTitle">곡을 선택해 들어보세요<small>아래 목록에서 ▶를 누르세요</small></div>
+      </div>
+      <div class="transport" style="margin-bottom:0;">
+        <div class="t-bar" id="sBar"><div class="t-fill" id="sFill"></div><div class="t-handle" id="sHandle"></div></div>
+        <div class="t-times"><span id="sCur">0:00</span><span id="sDur"></span></div>
+        <div class="t-pcts" id="sPcts"></div>
+      </div>
+    </div>
+
+    <div class="study-controls">
+      <div class="line1">
+        <input class="search" id="studySearch" placeholder="작곡가·곡명·한글로 검색" />
+        <div class="filter-seg" id="studyFilter">
+          <button data-f="all" aria-pressed="true">전체</button>
+          <button data-f="pin" aria-pressed="false">★ 핀</button>
+        </div>
+      </div>
+      <div class="line2">
+        <button class="pin-quiz" id="pinQuizBtn">★ 핀한 곡으로 퀴즈</button>
+        <button class="pin-clear" id="pinClearBtn">핀 비우기</button>
+      </div>
+    </div>
+
+    <div class="study-list" id="studyList"></div>
+  </section>
+
+  <footer>화면·탭·창 어디에도 곡 제목이 노출되지 않습니다.<br>유튜브 재생은 https 주소(호스팅)에서만 동작해요.</footer>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+/* ===================== DATA ===================== */
+const PIECES=[
+{id:'JS91p-vmSf0',c:'Schubert',t:'Erlkönig',ko:'마왕',start:0},
+{id:'UXDz0aByZVc',c:'Schumann',t:'Widmung',ko:'헌정',start:0},
+{id:'6z82w0l6kwE',c:'Schumann',t:'Träumerei',ko:'트로이메라이 · 꿈',start:0},
+{id:'Nuq_gGVTg2I',c:'Mendelssohn',t:'Songs without Words',ko:'무언가',start:0},
+{id:'SDwKJ6bBXEA',c:'Mendelssohn',t:'Violin Concerto in E minor, 1st Mvt.',ko:'',start:0,fixed:true},
+{id:'loOuh543gaY',c:'Paganini',t:'Caprice No. 24',ko:'',start:0},
+{id:'c7O91GDWGPU',c:'Rossini',t:'William Tell Overture — Finale',ko:'윌리엄 텔 서곡',start:0},
+{id:'8YQJWHCenJU',c:'Chopin',t:'Nocturne Op. 9 No. 2',ko:'녹턴',start:23},
+{id:'d3IKMiv8AHw',c:'Chopin',t:"Polonaise Op. 53 'Heroic'",ko:'영웅 폴로네즈',start:0},
+{id:'M0U73NRSIkw',c:'Liszt',t:'La Campanella',ko:'라 캄파넬라',start:0},
+{id:'Uk6qyGFYJ9M',c:'Liszt',t:"Transcendental Étude No. 4 'Mazeppa'",ko:'마제파',start:0},
+{id:'rQndTrMpkz8',c:'Liszt',t:'Paganini Étude No. 6',ko:'',start:0},
+{id:'roX70PAu3oA',c:'Berlioz',t:'Symphonie Fantastique, 4th Mvt.',ko:'환상 교향곡',start:0},
+{id:'2tB2SLLnPZg',c:'Brahms',t:'Symphony No. 3, 3rd Mvt.',ko:'',start:0},
+{id:'Nzo3atXtm54',c:'Brahms',t:'Hungarian Dance No. 5',ko:'헝가리 무곡 5번',start:0},
+{id:'Wpk7Kx4dt-U',c:'Saint-Saëns',t:'The Swan',ko:'백조',start:0},
+{id:'DfNgNTBDNUs',c:'Saint-Saëns',t:'Tortoise',ko:'거북이',start:0},
+{id:'vEnW5_GTooI',c:'Offenbach',t:'Orpheus in the Underworld — Overture',ko:'천국과 지옥 서곡',start:420},
+{id:'a4lmvXYRfa4',c:'Saint-Saëns',t:'The Aquarium',ko:'수족관',start:0},
+{id:'CoV2YOjFowY',c:'Bizet',t:"Carmen — 'Toreador'",ko:'투우사의 노래',start:0},
+{id:'JvjjoZFt26I',c:'Bizet',t:"Carmen — 'Gypsy Song'",ko:'집시의 노래',start:0},
+{id:'Z0PMq4XGtZ4',c:'Leoncavallo',t:"Pagliacci — 'Vesti la giubba'",ko:'의상을 입어라',start:0},
+{id:'3N4uXfnH2aA',c:'Mascagni',t:'Cavalleria Rusticana — Intermezzo',ko:'간주곡',start:0},
+{id:'ZcA-KuvHeVE',c:'Verdi',t:"Requiem — 'Dies Irae'",ko:'진노의 날',start:0},
+{id:'8A3zetSuYRg',c:'Verdi',t:"Rigoletto — 'La donna è mobile'",ko:'여자의 마음',start:0},
+{id:'M3ecaM5UjAA',c:'Puccini',t:"Turandot — 'Nessun dorma'",ko:'아무도 잠들지 말라',start:0},
+{id:'OrqYQoAIj_0',c:'Puccini',t:"Gianni Schicchi — 'O mio babbino caro'",ko:'사랑하는 나의 아버지',start:0},
+{id:'89jOPAGJq-M',c:'Dvořák',t:"Symphony No. 9 'New World', 4th Mvt.",ko:'신세계로부터',start:0},
+{id:'I1Yoyz6_Los',c:'Grieg',t:'Piano Concerto in A minor, 1st Mvt.',ko:'',start:0,fixed:true},
+{id:'Gf39OSAa6xc',c:'Grieg',t:"Peer Gynt — 'Morning Mood'",ko:'아침의 기분',start:0},
+{id:'gpS_u5RvMpM',c:'Sibelius',t:'Violin Concerto in D minor, 3rd Mvt.',ko:'',start:1510,fixed:true},
+{id:'MW8asBxO4oI',c:'Rimsky-Korsakov',t:'Flight of the Bumblebee',ko:'왕벌의 비행',start:0},
+{id:'kZkoW1Ta3ew',c:'Mussorgsky',t:'Pictures at an Exhibition — Baba Yaga / Great Gate of Kiev',ko:'전람회의 그림',start:200,fixed:true},
+{id:'ItSJ_woWnmk',c:'Tchaikovsky',t:'Piano Concerto No. 1, 1st Mvt.',ko:'',start:0,fixed:true},
+{id:'oEW0cXVoGo0',c:'Tchaikovsky',t:"Symphony No. 6 'Pathétique', 1st Mvt.",ko:'비창',start:290,fixed:true},
+{id:'LKcZL8q1eBw',c:'Tchaikovsky',t:"The Nutcracker — 'Waltz of the Flowers'",ko:'꽃의 왈츠',start:0},
+{id:'21MHVIcg1HY',c:'Rachmaninoff',t:'Symphony No. 2, 3rd Mvt.',ko:'',start:0},
+{id:'DPJL488cfRw',c:'Rachmaninoff',t:'Piano Concerto No. 3, 3rd Mvt. (Finale)',ko:'',start:2340,fixed:true},
+{id:'3vaJ91DuDww',c:'Rachmaninoff',t:'Rhapsody on a Theme of Paganini (Var. 18)',ko:'파가니니 주제 랩소디',start:980,fixed:true},
+{id:'xeRwBiu4wfQ',c:'Wagner',t:"Die Walküre — 'Ride of the Valkyries'",ko:'발퀴레의 기행',start:0},
+{id:'J2lX86w-pT4',c:'Wagner',t:"Lohengrin — 'Bridal Chorus'",ko:'결혼 행진곡',start:200},
+{id:'Bj6KLv7kv2Q',c:'Mahler',t:'Symphony No. 5, 4th Mvt.',ko:'아다지에토',start:0},
+{id:'GfwAPg4rQQE',c:'R. Strauss',t:'Also sprach Zarathustra',ko:'자라투스트라는 이렇게 말했다',start:0},
+{id:'xhEGMSOIptw',c:'J. Strauss I',t:'Radetzky March',ko:'라데츠키 행진곡',start:0},
+{id:'TF0XSkb7TyM',c:'J. Strauss II',t:'Frühlingsstimmen Waltz',ko:'봄의 소리 왈츠',start:0},
+{id:'ysG2AiEFeRw',c:'Elgar',t:"Salut d'amour",ko:'사랑의 인사',start:0},
+{id:'EQGBbLBShzk',c:'Tárrega',t:'Recuerdos de la Alhambra',ko:'알람브라 궁전의 추억',start:0},
+{id:'U3u4pQ4WKOk',c:'Debussy',t:'Clair de lune',ko:'달빛',start:0},
+{id:'9_7loz-HWUM',c:'Debussy',t:'Prélude to the Afternoon of a Faun',ko:'목신의 오후 전주곡',start:0},
+{id:'dovA8PuWGLU',c:'Ravel',t:'Boléro',ko:'볼레로',start:0},
+{id:'C5kufJw5n3U',c:'Ravel',t:"Jeux d'eau",ko:'물의 유희',start:0},
+{id:'sPpq44uEyXo',c:'Stravinsky',t:'The Rite of Spring',ko:'봄의 제전',start:0},
+{id:'SyDo3h1Tu7c',c:'Prokofiev',t:'Romeo and Juliet',ko:'로미오와 줄리엣',start:0},
+{id:'Z50Ooqv1GFg',c:'Bartók',t:'Romanian Folk Dances',ko:'루마니아 민속 무곡',start:340},
+{id:'cH2PH0auTUU',c:'Gershwin',t:'Rhapsody in Blue',ko:'랩소디 인 블루',start:0},
+{id:'RyadsHUBpWc',c:'Gershwin',t:"Porgy and Bess — 'Summertime'",ko:'서머타임',start:0},
+{id:'mmCnQDUSO4I',c:'Shostakovich',t:'Waltz No. 2',ko:'왈츠 2번',start:0},
+{id:'t83XjF04r80',c:'Piazzolla',t:'Libertango',ko:'리베르탱고',start:0},
+];
+const label=p=>`${p.c} — ${p.t}`;
+const idxOf=id=>PIECES.findIndex(p=>p.id===id);
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+function fmt(s){s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
+function show(id){['start','quiz','result','study'].forEach(s=>$('#screen-'+s).classList.toggle('hidden',s!==id));
+  currentScreen=id;window.scrollTo({top:0,behavior:'smooth'});}
+let currentScreen='start';
+
+/* ===================== PINS (오답노트) ===================== */
+let pins=new Set();
+function loadPins(){try{const r=localStorage.getItem('lt_pins');if(r)pins=new Set(JSON.parse(r));}catch(_){}}
+function savePins(){try{localStorage.setItem('lt_pins',JSON.stringify([...pins]));}catch(_){}}
+function togglePin(id){pins.has(id)?pins.delete(id):pins.add(id);savePins();refreshPinUI();}
+function addPin(id){if(!pins.has(id)){pins.add(id);savePins();refreshPinUI();}}
+function refreshPinUI(){
+  const n=pins.size;
+  const pe=$('#pinEntry');
+  if(n>0){pe.classList.remove('hidden');pe.innerHTML=`<button id="pinStartQuiz">★ 핀한 ${n}곡만 시험보기</button>`;
+    $('#pinStartQuiz').onclick=()=>startQuiz([...pins].map(idxOf).filter(i=>i>=0),Infinity,true);}
+  else pe.classList.add('hidden');
+  const pq=$('#pinQuizBtn'),pq2=$('#pinQuizBtn2');
+  if(pq){pq.disabled=n===0;pq.textContent=`★ 핀한 곡으로 퀴즈 (${n})`;}
+  if(pq2){pq2.disabled=n===0;}
+}
+
+/* ===================== PLAYER ===================== */
+let player=null,ytReady=false;
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('yt-host',{width:'320',height:'180',videoId:'',
+    playerVars:{controls:0,disablekb:1,fs:0,iv_load_policy:3,modestbranding:1,rel:0,playsinline:1,enablejsapi:1,origin:window.location.origin},
+    events:{onReady:()=>{ytReady=true;T.render();if($('#sFab'))$('#sFab').disabled=false;},
+            onStateChange:onState,onError:onErr}});
+}
+let awaiting=false,watchdog=null;
+function onState(e){
+  if(e.data===YT.PlayerState.PLAYING||e.data===YT.PlayerState.BUFFERING){awaiting=false;clearTimeout(watchdog);}
+  if(e.data===YT.PlayerState.PLAYING){T.playing=true;T.render();}
+  else if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.ENDED){T.playing=false;T.render();}
+}
+function onErr(e){awaiting=false;clearTimeout(watchdog);
+  const blocked=(e.data===101||e.data===150);
+  notice(blocked?'이 영상은 외부 삽입이 막혀 있어요. 번호를 알려주시면 다른 영상으로 교체할게요.'
+    :'이 환경에서는 유튜브 재생이 막혀요. 파일을 무료 호스팅(app.netlify.com/drop)에 올려 https 주소로 열면 정상 재생돼요.');}
+function startWatchdog(){awaiting=true;clearTimeout(watchdog);
+  watchdog=setTimeout(()=>{if(awaiting)notice('소리가 안 나오나요? 채팅 미리보기·로컬 파일에선 막혀요. app.netlify.com/drop 에 올려 https 주소로 여세요.');},3500);}
+function notice(m){const el=$('#playerNotice');if(el){el.textContent=m;el.classList.remove('hidden');}}
+function clearNotice(){const el=$('#playerNotice');if(el)el.classList.add('hidden');}
+
+/* start-second logic incl. random/fixed */
+let startMode='normal';
+function startSecondsFor(p){ if(startMode==='random'&&!p.fixed)return null; return p.start||0; }
+
+/* ===================== TRANSPORT ===================== */
+const T={
+  refs:null,piece:null,loadedId:null,playing:false,pendingFrac:null,dragging:false,
+  use(refs){this.refs=refs;this.render();},
+  setPiece(p){this.piece=p;this.loadedId=null;this.playing=false;this.pendingFrac=null;this.resetBar();this.render();},
+  resetBar(){const r=this.refs;if(!r)return;$(r.fill).style.width='0%';$(r.handle).style.left='0%';$(r.cur).textContent='0:00';$(r.dur).textContent='';},
+  load(p,frac){
+    this.piece=p;this.loadedId=p.id;clearNotice();
+    const ss=startSecondsFor(p);
+    if(frac!=null){this.pendingFrac=frac;player.loadVideoById({videoId:p.id,startSeconds:0});}
+    else if(ss==null){this.pendingFrac=0.08+Math.random()*0.52;player.loadVideoById({videoId:p.id,startSeconds:0});}
+    else{this.pendingFrac=null;player.loadVideoById({videoId:p.id,startSeconds:ss});}
+    startWatchdog();
+  },
+  toggle(){
+    if(!this.piece||!ytReady)return;clearNotice();
+    const st=player.getPlayerState&&player.getPlayerState();
+    if(this.loadedId===this.piece.id&&st===YT.PlayerState.PLAYING){player.pauseVideo();}
+    else if(this.loadedId===this.piece.id&&(st===YT.PlayerState.PAUSED||st===YT.PlayerState.CUED)){player.playVideo();startWatchdog();}
+    else{this.load(this.piece);}
+  },
+  playPiece(p){this.setTitle(p);this.load(p);},
+  setTitle(p){const r=this.refs;if(r&&r.title){$(r.title).innerHTML=`${label(p)}<small>${p.ko||''}${p.start?(p.ko?' · ':'')+fmt(p.start)+' 부터':''}</small>`;}},
+  seekFrac(f){
+    if(!this.piece||!ytReady)return;
+    if(this.loadedId===this.piece.id){const d=player.getDuration()||0;if(d>0)player.seekTo(f*d,true);}
+    else{this.load(this.piece,f);}
+  },
+  render(){
+    const r=this.refs;if(!r)return;
+    const on=this.playing;
+    $(r.icon).setAttribute('d',on?'M7 5h4v14H7zM13 5h4v14h-4z':'M8 5v14l11-7z');
+    if(r.stage)$(r.stage).classList.toggle('playing',on);
+    if(r.hint&&this.piece)$(r.hint).textContent=on?'재생 중 · 다시 누르면 정지':(ytReady?'재생을 눌러 들어보세요':'불러오는 중…');
+    $(r.fab).disabled=!ytReady;
+  }
+};
+function tick(){
+  if(!ytReady||!player.getDuration)return;
+  const r=T.refs;if(!r)return;
+  if(T.pendingFrac!=null){const d=player.getDuration();if(d>3){try{player.seekTo(T.pendingFrac*d,true);}catch(_){}T.pendingFrac=null;}}
+  const d=player.getDuration()||0,c=player.getCurrentTime()||0;
+  if(!T.dragging&&d>0){const f=Math.min(1,c/d);$(r.fill).style.width=(f*100)+'%';$(r.handle).style.left=(f*100)+'%';}
+  $(r.cur).textContent=fmt(c);
+  $(r.dur).textContent=r.hideDur?'':(d>0?fmt(d):'');
+}
+setInterval(tick,200);
+
+function wireTransport(r){
+  $(r.fab).addEventListener('click',()=>T.toggle());
+  const bar=$(r.bar);
+  const fracAt=e=>{const b=bar.getBoundingClientRect();return Math.min(1,Math.max(0,(e.clientX-b.left)/b.width));};
+  const preview=f=>{$(r.fill).style.width=(f*100)+'%';$(r.handle).style.left=(f*100)+'%';
+    const d=player&&player.getDuration?player.getDuration():0;if(d>0)$(r.cur).textContent=fmt(f*d);};
+  bar.addEventListener('pointerdown',e=>{T.dragging=true;bar.setPointerCapture(e.pointerId);preview(fracAt(e));});
+  bar.addEventListener('pointermove',e=>{if(T.dragging)preview(fracAt(e));});
+  bar.addEventListener('pointerup',e=>{if(T.dragging){const f=fracAt(e);T.dragging=false;T.seekFrac(f);}});
+  bar.addEventListener('pointercancel',()=>{T.dragging=false;});
+  const pcts=$(r.pcts);
+  for(let p=0;p<=90;p+=10){const b=document.createElement('button');b.className='pct-btn';b.textContent=p;b.onclick=()=>T.seekFrac(p/100);pcts.appendChild(b);}
+}
+const quizRefs={fab:'#qFab',icon:'#qFabIcon',bar:'#qBar',fill:'#qFill',handle:'#qHandle',cur:'#qCur',dur:'#qDur',pcts:'#qPcts',stage:'#qStage',hint:'#qHint',title:null,hideDur:true};
+const studyRefs={fab:'#sFab',icon:'#sFabIcon',bar:'#sBar',fill:'#sFill',handle:'#sHandle',cur:'#sCur',dur:'#sDur',pcts:'#sPcts',stage:null,hint:null,title:'#sTitle',hideDur:false};
+wireTransport(quizRefs);wireTransport(studyRefs);
+
+function stopAudio(){if(ytReady){try{player.stopVideo();}catch(_){}}T.playing=false;T.loadedId=null;}
+
+/* ===================== START SCREEN ===================== */
+let mode='quiz',count=20;
+$('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.mode;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#quizOpts').classList.toggle('hidden',mode!=='quiz');
+  $('#startBtn').textContent=mode==='quiz'?'시험 시작':'연습 시작';});
+$('#startSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;startMode=b.dataset.start;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#countSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  count=b.dataset.count==='all'?Infinity:parseInt(b.dataset.count,10);
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#startBtn').addEventListener('click',()=>{
+  if(mode==='study'){openStudy();}
+  else{startQuiz([...PIECES.keys()],count,false);}
+});
+
+/* ===================== QUIZ ===================== */
+let order=[],qIndex=0,score=0,answers=[],pinnedRun=false;
+function startQuiz(pool,cnt,isPinned){
+  if(!pool.length){return;}
+  pinnedRun=!!isPinned;
+  const n=cnt===Infinity?pool.length:Math.min(cnt,pool.length);
+  order=shuffle(pool).slice(0,n);
+  qIndex=0;score=0;answers=[];
+  T.use(quizRefs);show('quiz');loadQuestion();
+}
+function pickDistractors(correct){
+  const others=PIECES.filter(p=>p!==correct);
+  const same=shuffle(others.filter(p=>p.c===correct.c)).slice(0,2);
+  const rest=shuffle(others.filter(p=>!same.includes(p)));
+  return shuffle([...same,...rest].slice(0,3));
+}
+function loadQuestion(){
+  stopAudio();
+  const piece=PIECES[order[qIndex]];const total=order.length;
+  T.setPiece(piece);
+  $('#qCounter').textContent=`Question ${qIndex+1} / ${total}`;
+  $('#progBar').style.width=`${(qIndex/total)*100}%`;
+  $('#qTag').textContent=startMode==='random'&&!piece.fixed?'Random Excerpt':'Now Sealed';
+  $('#feedback').innerHTML='';$('#nextBtn').classList.add('hidden');clearNotice();
+  $('#qHint').textContent=ytReady?'재생을 눌러 들어보세요':'불러오는 중…';
+
+  const opts=shuffle([piece,...pickDistractors(piece)]);
+  const box=$('#options');box.innerHTML='';const L=['A','B','C','D'];
+  opts.forEach((p,i)=>{const b=document.createElement('button');b.className='opt';
+    b.innerHTML=`<span class="marker">${L[i]}</span><span><span class="o-main">${label(p)}</span>${p.ko?`<span class="o-ko">${p.ko}</span>`:''}</span>`;
+    b.onclick=()=>choose(p,piece,b,box);box.appendChild(b);});
+}
+function choose(picked,correct,btn,box){
+  const right=picked===correct;if(right)score++;
+  answers.push({piece:correct,right,picked});
+  box.querySelectorAll('.opt').forEach(b=>{b.disabled=true;
+    if(b.querySelector('.o-main').textContent===label(correct))b.classList.add('correct');});
+  let pinNote='';
+  if(!right){btn.classList.add('wrong');addPin(correct.id);pinNote='<div class="pinned-note">★ 오답노트에 자동으로 담았어요</div>';}
+  $('#feedback').innerHTML=right
+    ?`<div class="verdict ok display">정답입니다</div>`
+    :`<div class="verdict no display">아쉬워요</div><div class="answer">정답: ${label(correct)}${correct.ko?' · '+correct.ko:''}</div>${pinNote}`;
+  const nb=$('#nextBtn');nb.classList.remove('hidden');
+  nb.textContent=(qIndex+1<order.length)?'다음 곡 →':'결과 보기 →';
+  nb.onclick=()=>{qIndex++;qIndex<order.length?loadQuestion():showResult();};
+}
+$('#quitBtn').addEventListener('click',()=>{stopAudio();show('start');});
+
+/* ===================== RESULT ===================== */
+function showResult(){
+  stopAudio();show('result');
+  const total=order.length;
+  $('#scoreNum').textContent=score;$('#scoreDen').textContent=' / '+total;
+  const pct=score/total;
+  $('#scoreMsg').textContent=pct===1?'완벽합니다. 시험장에서도 이대로만!':
+    pct>=.75?'거의 다 왔어요. 틀린 곡만 다시 들어보세요.':
+    pct>=.5?'절반은 잡았어요. ★ 담긴 곡 위주로 복습!':'★에 담긴 곡들부터 하나씩 익혀봐요.';
+  const rev=$('#review');rev.innerHTML='';
+  answers.forEach(a=>{rev.appendChild(makeRow(a.piece,{mode:'review',right:a.right,picked:a.picked}));});
+}
+$('#restartBtn').addEventListener('click',()=>{
+  pinnedRun?startQuiz([...pins].map(idxOf).filter(i=>i>=0),Infinity,true):startQuiz([...PIECES.keys()],count,false);
+});
+$('#pinQuizBtn2').addEventListener('click',()=>{if(pins.size)startQuiz([...pins].map(idxOf).filter(i=>i>=0),Infinity,true);});
+
+/* ===================== ROW BUILDER ===================== */
+function makeRow(p,opt){
+  opt=opt||{};const row=document.createElement('div');row.className='row';
+  const lead=opt.mode==='review'
+    ?`<span class="dot ${opt.right?'ok':'no'}"></span>`
+    :`<span class="num">${idxOf(p.id)+1}</span>`;
+  const sub=opt.mode==='review'
+    ?(opt.right?'정답':'내 답: '+label(opt.picked))
+    :(p.ko||'');
+  const badges=[];
+  if(p.start)badges.push(`<span class="badge">${fmt(p.start)}~</span>`);
+  if(p.fixed)badges.push(`<span class="badge fix">악장 고정</span>`);
+  row.innerHTML=`${lead}
+    <div class="body"><div class="r-title">${label(p)}</div>
+      <div class="r-sub"><span>${sub}</span>${badges.join('')}</div></div>
+    <button class="pin-star ${pins.has(p.id)?'on':''}" aria-label="핀">${pins.has(p.id)?'★':'☆'}</button>
+    <button class="mini-play" aria-label="듣기"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></button>`;
+  const star=row.querySelector('.pin-star');
+  star.onclick=()=>{togglePin(p.id);star.classList.toggle('on',pins.has(p.id));star.textContent=pins.has(p.id)?'★':'☆';};
+  row.querySelector('.mini-play').onclick=()=>{T.use(currentScreen==='study'?studyRefs:quizRefs);T.playPiece(p);};
+  return row;
+}
+
+/* ===================== STUDY ===================== */
+let studyFilter='all';
+function openStudy(){T.use(studyRefs);$('#sFab').disabled=!ytReady;buildStudy();show('study');}
+function buildStudy(){
+  const q=($('#studySearch').value||'').trim().toLowerCase();
+  const list=$('#studyList');list.innerHTML='';
+  let arr=PIECES.filter(p=>{
+    if(studyFilter==='pin'&&!pins.has(p.id))return false;
+    if(q){const hay=(p.c+' '+p.t+' '+(p.ko||'')).toLowerCase();if(!hay.includes(q))return false;}
+    return true;
+  });
+  if(!arr.length){list.innerHTML=`<div class="empty">${studyFilter==='pin'?'아직 ★ 핀한 곡이 없어요. 곡 옆 ☆를 눌러 담아보세요.':'검색 결과가 없어요.'}</div>`;return;}
+  arr.forEach(p=>list.appendChild(makeRow(p,{mode:'study'})));
+}
+$('#studySearch').addEventListener('input',buildStudy);
+$('#studyFilter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;studyFilter=b.dataset.f;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));buildStudy();});
+$('#pinQuizBtn').addEventListener('click',()=>{if(pins.size)startQuiz([...pins].map(idxOf).filter(i=>i>=0),Infinity,true);});
+$('#pinClearBtn').addEventListener('click',()=>{if(pins.size&&confirm('핀한 곡을 모두 비울까요?')){pins.clear();savePins();refreshPinUI();buildStudy();}});
+$('#studyQuit').addEventListener('click',()=>{stopAudio();show('start');});
+
+/* ===================== INIT ===================== */
+loadPins();refreshPinUI();
+$('#quizOpts').classList.remove('hidden');
+</script>
+</body>
+</html>
