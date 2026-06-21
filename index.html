@@ -95,6 +95,13 @@
   .pct-btn{flex:1;min-width:34px;background:var(--surface);border:1px solid var(--line);color:var(--muted);
     border-radius:7px;padding:6px 0;font-size:11px;font-weight:600;transition:.13s;}
   .pct-btn:hover{border-color:var(--brass);color:var(--ivory);}
+  .pct-btn.nudge{flex:0 0 auto;min-width:40px;color:var(--brass-soft);border-color:rgba(201,162,75,.4);font-size:14px;padding:6px 10px;}
+  .pct-btn.nudge:hover{background:rgba(201,162,75,.14);color:#fff;}
+
+  .countdown{margin:-4px 0 14px;}
+  .cd-label{font-size:11px;color:var(--brass-soft);margin-bottom:5px;text-align:center;letter-spacing:.02em;}
+  .cd-bar{height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
+  .cd-bar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--brass),var(--brass-soft));transition:width .2s linear;}
 
   .player-notice{margin:0 0 16px;padding:11px 14px;border-radius:10px;font-size:12.5px;line-height:1.55;text-align:center;
     color:var(--brass-soft);background:rgba(201,162,75,.1);border:1px solid rgba(201,162,75,.35);}
@@ -210,6 +217,17 @@
   .nav-btn.flip:hover{background:var(--brass-soft);}
 
   footer{margin-top:30px;text-align:center;font-size:11px;color:var(--muted);opacity:.6;line-height:1.6;}
+  /* theory */
+  .tq{font-size:16px;font-weight:500;line-height:1.55;margin:8px 0 20px;text-align:center;}
+  .rev-q{font-size:13px;font-weight:500;line-height:1.45;margin-bottom:4px;}
+  .rev-a{font-size:12px;color:var(--muted);line-height:1.5;}
+  .rev-a .ok{color:var(--green);}.rev-a .no{color:var(--rose);}
+  .concept-list{display:grid;gap:11px;}
+  .concept{border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:linear-gradient(180deg,var(--surface),var(--ink-2));}
+  .concept h3{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:21px;margin:0 0 3px;color:var(--ivory);line-height:1.1;}
+  .concept .tags{font-size:11.5px;color:var(--brass-soft);margin-bottom:9px;letter-spacing:.01em;}
+  .concept ul{margin:0;padding-left:17px;}
+  .concept li{font-size:12.5px;color:var(--ivory);opacity:.88;margin:3px 0;line-height:1.5;}
   @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
 </style>
 </head>
@@ -229,11 +247,28 @@
     <p class="sub-ko">제목을 가린 채 소리만 듣고 곡을 맞혀보세요</p>
 
     <div class="opt-row">
+      <div class="opt-label">분야</div>
+      <div class="seg" id="subjectSeg">
+        <button data-sub="listen" aria-pressed="true">🎧 듣기</button>
+        <button data-sub="theory" aria-pressed="false">📖 이론(개념)</button>
+      </div>
+    </div>
+
+    <div id="listenBlock">
+    <div class="opt-row">
       <div class="opt-label">모드</div>
       <div class="seg" id="modeSeg">
         <button data-mode="quiz" aria-pressed="true">시험</button>
         <button data-mode="card" aria-pressed="false">암기</button>
         <button data-mode="study" aria-pressed="false">연습</button>
+      </div>
+    </div>
+
+    <div class="opt-row" id="autoRow">
+      <div class="opt-label">자동 진행 (시험·연습)</div>
+      <div class="seg" id="autoSeg">
+        <button data-auto="off" aria-pressed="true">끄기</button>
+        <button data-auto="on" aria-pressed="false">45초마다 ▶</button>
       </div>
     </div>
 
@@ -264,10 +299,29 @@
         </div>
       </div>
     </div>
+    </div><!-- /listenBlock -->
+
+    <div id="theoryBlock" class="hidden">
+      <div class="opt-row">
+        <div class="opt-label">이론 모드</div>
+        <div class="seg" id="tModeSeg">
+          <button data-tmode="study" aria-pressed="true">개념 학습</button>
+          <button data-tmode="quiz" aria-pressed="false">개념 시험</button>
+        </div>
+      </div>
+      <div class="opt-row hidden" id="tCountWrap">
+        <div class="opt-label">문제 수</div>
+        <div class="seg" id="tCountSeg">
+          <button data-tc="15" aria-pressed="false">15</button>
+          <button data-tc="25" aria-pressed="true">25</button>
+          <button data-tc="all" aria-pressed="false">전체</button>
+        </div>
+      </div>
+    </div>
 
     <div><button class="start-btn" id="startBtn">시작하기</button></div>
     <div class="pin-entry hidden" id="pinEntry"></div>
-    <p class="pieces-note">★로 핀한 곡은 ‘오답노트’처럼 따로 모아 연습할 수 있어요 · 틀린 곡은 자동으로 핀돼요</p>
+    <p class="pieces-note">🎧 듣기: 58곡 시험·암기·연습 · 📖 이론: 낭만/20세기 개념 학습·시험</p>
   </section>
 
   <!-- ===== QUIZ ===== -->
@@ -293,6 +347,11 @@
       <div class="t-bar" id="qBar"><div class="t-fill" id="qFill"></div><div class="t-handle" id="qHandle"></div></div>
       <div class="t-times"><span id="qCur">0:00</span><span id="qDur"></span></div>
       <div class="t-pcts" id="qPcts"></div>
+    </div>
+
+    <div class="countdown hidden" id="qCountdownWrap">
+      <div class="cd-label">⏱ 자동 진행 · 남은 시간 <span id="qCdNum">45</span>s</div>
+      <div class="cd-bar"><i id="qCountdown"></i></div>
     </div>
 
     <p id="playerNotice" class="player-notice hidden"></p>
@@ -377,6 +436,10 @@
         <div class="t-times"><span id="sCur">0:00</span><span id="sDur"></span></div>
         <div class="t-pcts" id="sPcts"></div>
       </div>
+      <div class="countdown hidden" id="sCountdownWrap" style="margin:10px 0 0;">
+        <div class="cd-label">⏱ 자동 재생 중 · 다음 곡까지 <span id="sCdNum">45</span>s</div>
+        <div class="cd-bar"><i id="sCountdown"></i></div>
+      </div>
     </div>
 
     <div class="study-controls">
@@ -394,6 +457,43 @@
     </div>
 
     <div class="study-list" id="studyList"></div>
+  </section>
+
+  <!-- ===== THEORY STUDY ===== -->
+  <section id="screen-tstudy" class="hidden">
+    <div class="topbar">
+      <span class="label">개념 학습 · 낭만 / 20세기</span>
+      <button class="quit" id="tStudyQuit">처음으로</button>
+    </div>
+    <input class="search" id="tSearch" placeholder="작곡가·키워드·개념으로 검색" style="width:100%;margin-bottom:14px;" />
+    <div class="concept-list" id="conceptList"></div>
+  </section>
+
+  <!-- ===== THEORY QUIZ ===== -->
+  <section id="screen-tquiz" class="hidden">
+    <div class="topbar">
+      <span class="label" id="tCounter">문제 1</span>
+      <button class="quit" id="tQuit">그만두기</button>
+    </div>
+    <div class="progress"><i id="tProg" style="width:0%"></i></div>
+    <p class="tq" id="tQuestion"></p>
+    <div class="options" id="tOptions"></div>
+    <div class="feedback" id="tFeedback"></div>
+    <button class="next-btn hidden" id="tNext">다음 →</button>
+  </section>
+
+  <!-- ===== THEORY RESULT ===== -->
+  <section id="screen-tresult" class="hidden">
+    <div class="card result-head">
+      <div class="eyebrow">개념 시험 결과</div>
+      <div class="score-big"><span id="tScoreNum">0</span><small id="tScoreDen"> / 0</small></div>
+      <div class="score-msg" id="tScoreMsg"></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" id="tRestart">다시 풀기</button>
+      <button class="btn-ghost" id="tToStudy">개념 학습으로</button>
+    </div>
+    <div class="review" id="tReview"></div>
   </section>
 
   <footer>화면·탭·창 어디에도 곡 제목이 노출되지 않습니다.<br>유튜브 재생은 https 주소(호스팅)에서만 동작해요.</footer>
@@ -465,12 +565,106 @@ const PIECES=[
 const label=p=>`${p.c} — ${p.t}`;
 const idxOf=id=>PIECES.findIndex(p=>p.id===id);
 
+/* ===================== THEORY: concept cards ===================== */
+const CONCEPTS=[
+{title:'절대음악 vs 표제음악',tags:'개념 · 낭만',pts:['절대음악: 형식·동기·화성·구조 자체가 중심. 제목은 보통 「장르+번호+조성+작품번호」 (예: 교향곡 3번 e단조 Op.90).','표제음악: 문학·풍경·전설·사건 등 음악 밖 내용을 표현. 서사적·묘사적 제목 (예: 환상교향곡, 핀란디아, 몰다우).','별명이 붙어도 원래는 절대음악일 수 있음(예: 월광 소나타).']},
+{title:'교향시 (Symphonic Poem)',tags:'장르 · 리스트',pts:['리스트가 확립한 단악장 관현악 표제음악.','문학·신화·역사·풍경·사상을 자유로운 형식으로 표현.','예: 리스트 Les Préludes, 스메타나 몰다우, 시벨리우스 핀란디아, R.슈트라우스 자라투스트라.']},
+{title:'성격소품 (Character Piece)',tags:'장르 · 피아노',pts:['주로 피아노를 위한 짧은 낭만 소품으로 특정 분위기·정서·이미지를 표현.','제목이 성격을 암시: 녹턴, 무언가, 트로이메라이, 인터메초.','예: 쇼팽 녹턴, 슈만 어린이의 정경, 멘델스존 무언가, 브람스 인터메초.']},
+{title:'연가곡 / 연주회용 연습곡',tags:'장르 · 낭만',pts:['연가곡(Song Cycle): 여러 가곡을 하나의 서사·주제로 묶음 (예: 슈베르트 겨울나그네).','연주회용 연습곡(Concert Etude): 손가락 훈련을 넘어 무대용 예술작품이 된 에튀드 (쇼팽 혁명, 리스트 초절기교).']},
+{title:'고정악상·주제적 변용·유도동기',tags:'기법 비교',pts:['고정악상(베를리오즈): 비교적 긴 선율이 인물·생각을 상징, 악장마다 변형.','주제적 변용(리스트): 짧은 주제를 곡 전체에서 리듬·화성·성격을 바꿔 통일성 부여.','유도동기(바그너): 더 짧고 파편적인 동기가 인물·사물·감정을 상징하며 극 속에서 반복·중첩.']},
+{title:'진보파 vs 보수파',tags:'중기 낭만',pts:['진보파: 리스트·베를리오즈·바그너 — 표제음악, 교향시, 악극, 대규모 관현악.','보수파: 브람스 — 절대음악, 고전 형식 계승(소나타·교향곡·실내악).','대립축: 음악이 외부 서사와 결합할 것인가 vs 음악 자체 형식으로 완결될 것인가.']},
+{title:'낭만 오페라 흐름',tags:'오페라',pts:['벨칸토: 로시니·벨리니·도니체티 — 아름다운 선율과 성악 기교.','베르디: 이탈리아 낭만 오페라의 정점, 인간 드라마·정치성·합창.','베리스모: 마스카니·레온카발로·푸치니 — 평민·질투·폭력·현실적 비극.']},
+{title:'러시아 5인조 (The Mighty Handful)',tags:'민족주의 · 러시아',pts:['발라키레프·큐이·보로딘·무소륵스키·림스키코르사코프.','서유럽 아카데미보다 러시아 고유 어법을 중시.','차이콥스키는 러시아인이지만 5인조가 아님(서구식 형식 수용).']},
+{title:'인상주의',tags:'20세기 · 프랑스',pts:['드뷔시·라벨이 대표.','선명한 조성보다 음색·모호한 조성·확장화음·선법·온음음계.','물·빛·오후·달빛처럼 분위기를 암시하는 제목.']},
+{title:'제2빈악파 · 12음 기법',tags:'무조성',pts:['쇤베르크·베베른·베르크.','12개 반음을 동등하게 배열해 조성 중심을 피하는 작곡법 → 총렬주의로 연결.','대표작: 쇤베르크 달에 홀린 피에로(Pierrot Lunaire).']},
+{title:'원시주의 · 신고전주의',tags:'20세기',pts:['원시주의: 거칠고 강한 리듬·반복·제의적 에너지 (스트라빈스키 봄의 제전, 바르토크).','신고전주의: 바로크·고전 형식과 명료성을 현대 언어로 재해석 (스트라빈스키 후기, 프로코피예프).']},
+{title:'우연음악 · 음향/미니멀리즘',tags:'20세기',pts:['우연음악(케이지): 우연·침묵·환경음·청중 상황을 작품에 포함 (4′33″).','음향/미니멀리즘(리게티 등): 선율보다 소리 덩어리·질감·반복·미세한 변화.']},
+{title:'Schubert 슈베르트',tags:'가곡의 왕 · 초기 낭만',pts:['독일 예술가곡(Lied) 확립, 피아노 반주가 장면·심리를 묘사.','대표작: Erlkönig(마왕), 겨울나그네, 미완성 교향곡.']},
+{title:'Mendelssohn 멘델스존',tags:'고전적·보수적',pts:['바흐 마태수난곡 부흥 공연으로 바흐 재평가에 기여.','낭만 시대지만 형식·균형은 고전적. 명료한 형식, 우아한 선율.','대표작: 무언가, 바이올린 협주곡 e단조, 한여름 밤의 꿈.']},
+{title:'Schumann 슈만',tags:'성격소품 · 평론가',pts:['오이제비우스(내성적)·플로레스탄(격정적) 두 자아를 음악화.','클라라 슈만, 음악평론지와 연결. 문학적 제목·짧은 피아노 소품.','대표작: Widmung(헌정), 어린이의 정경 중 트로이메라이.']},
+{title:'Paganini 파가니니',tags:'바이올린 비르투오소',pts:['극한의 기교로 19세기 거장 숭배 문화를 상징.','슈만·쇼팽·리스트·브람스·라흐마니노프에게 영감.','대표작: Caprice No.24 (후대 변주곡·랩소디의 주제).']},
+{title:'Chopin 쇼팽',tags:'피아노의 시인',pts:['거의 모든 작품이 피아노 중심.','폴란드 춤곡 마주르카·폴로네이즈를 예술음악으로 승화.','노래하듯 흐르는 벨칸토적 선율. 대표작: 영웅 폴로네즈, 녹턴, 혁명 에튀드.']},
+{title:'Liszt 리스트',tags:'교향시 · 비르투오소',pts:['교향시를 최초로 창안, 피아노 독주회·암보 연주 관행 확산.','주제적 변용 기법. 파가니니 영향으로 피아노 초절기교 실현.','대표작: 라 캄파넬라, 마제파, 헝가리 랩소디 2번.']},
+{title:'Berlioz 베를리오즈',tags:'표제음악 · 고정악상',pts:['급진적 낭만·표제음악의 대표, 뛰어난 관현악법.','고정악상: 인물을 상징하는 선율이 곡 전체에 반복·변형.','대표작: 환상교향곡(아편 꿈·집착, 5악장 Dies irae).']},
+{title:'Brahms 브람스',tags:'절대음악 · 보수',pts:['리스트·바그너의 진보와 대비되는 절대음악의 대표.','형식은 고전적, 화성·정서는 낭만적. 치밀한 동기 전개.','대표작: 교향곡 3번, 헝가리 무곡 5번, 인터메초.']},
+{title:'Wagner 바그너',tags:'악극 · 유도동기',pts:['종합예술로서 오페라를 악극으로 확장.','유도동기: 짧은 동기가 인물·사물·감정을 상징하며 반복·변형.','트리스탄 화음으로 조성을 흔들어 20세기 무조성에 영향.','대표작: 발퀴레의 기행, 로엔그린 결혼 합창.']},
+{title:'Mahler / R. Strauss',tags:'후기 낭만',pts:['말러: 교향곡 안에 세계 전체를 담으려 함, 거대한 스케일(교향곡 5번 4악장 아다지에토).','R. 슈트라우스: 교향시를 후기 낭만 관현악의 절정으로(자라투스트라는 이렇게 말했다).']},
+{title:'Saint-Saëns / Offenbach',tags:'프랑스',pts:['생상스: 프랑스식 명료함·관현악 색채, 동물의 사육제(백조·거북이·수족관).','오펜바흐: 프랑스 오페레타·풍자·캉캉, 천국과 지옥(Orpheus in the Underworld).']},
+{title:'이탈리아 오페라 작곡가',tags:'벨칸토 · 베리스모',pts:['로시니: 윌리엄 텔 서곡, 로시니 크레셴도.','베르디: 리골레토(여자의 마음), 레퀴엠 Dies irae.','마스카니: 카발레리아 루스티카나 간주곡 / 레온카발로: 팔리아치(의상을 입어라).','푸치니: 투란도트(아무도 잠들지 말라), 잔니 스키키(사랑하는 나의 아버지).']},
+{title:'민족주의 작곡가',tags:'체코·북유럽·러시아',pts:['드보르자크(체코): 신세계 교향곡 / 스메타나: 몰다우.','그리그(노르웨이): 페르 귄트 아침의 기분, 피아노 협주곡 a단조.','시벨리우스(핀란드): 핀란디아, 바이올린 협주곡 d단조.','림스키코르사코프: 왕벌의 비행, 천일야화 / 무소륵스키: 전람회의 그림.']},
+{title:'Tchaikovsky / Rachmaninoff',tags:'러시아 낭만',pts:['차이콥스키: 5인조가 아님, 서구식 형식·발레음악의 대가(호두까기인형, 비창).','라흐마니노프: 후기 낭만 어법, 넓은 음역·긴 선율(피아노 협주곡 3번, 파가니니 주제 랩소디).']},
+{title:'빈 왈츠 / 영국 / 스페인',tags:'19세기 후반',pts:['요한 슈트라우스 1세: 라데츠키 행진곡 / 2세: 왈츠의 왕, 봄의 소리 왈츠.','엘가(영국): 사랑의 인사, 위풍당당 행진곡.','타레가(스페인): 클래식 기타·트레몰로, 알람브라 궁전의 추억.']},
+{title:'Debussy / Ravel',tags:'인상주의',pts:['드뷔시: 음색·모호한 조성·온음음계, 달빛·목신의 오후 전주곡.','라벨: 관현악의 대가·정교함, 볼레로·물의 유희.']},
+{title:'Stravinsky / Prokofiev / Bartók',tags:'20세기',pts:['스트라빈스키: 원시주의·신고전주의, 봄의 제전.','프로코피예프: 신고전주의·서사성, 피터와 늑대, 스탈린과 같은 날 사망.','바르토크: 민속음악 연구·불가리아 리듬, 루마니아 민속 무곡.']},
+{title:'Gershwin / Cage / Shostakovich / Piazzolla',tags:'20세기',pts:['거슈윈: 재즈+클래식, 랩소디 인 블루, 포기와 베스(서머타임).','케이지: 우연음악·침묵, 4′33″.','쇼스타코비치: 소비에트·풍자, 왈츠 2번, 교향곡 10번.','피아졸라: 누에보 탱고·반도네온, 리베르탱고.']},
+];
+
+/* ===================== THEORY: question bank ===================== */
+const THEORY_BANK=[
+{q:'교향시(symphonic poem) 형식을 확립한 작곡가는?',a:'리스트',w:['바그너','베를리오즈','브람스'],n:'리스트가 단악장 관현악 표제음악인 교향시를 창안했다.'},
+{q:'환상교향곡에서 연인을 상징하는 선율이 악장마다 변형되는 기법은?',a:'고정악상(idée fixe)',w:['유도동기','주제적 변용','순환형식'],n:'베를리오즈의 고정악상은 길고 선율적이다.'},
+{q:'오페라(악극)에서 인물·감정을 짧은 동기로 상징해 반복·변형하는 바그너의 기법은?',a:'유도동기(leitmotif)',w:['고정악상','주제적 변용','순환형식'],n:'유도동기는 고정악상·주제적 변용보다 짧고 파편적이다.'},
+{q:'전통 화성을 흔들며 20세기 무조성에 영향을 준, 해결을 지연시키는 화음은?',a:'트리스탄 화음',w:['나폴리 6화음','증6화음','피카르디 종지'],n:'바그너 「트리스탄과 이졸데」.'},
+{q:"절대음악의 대표자이자 '낭만 시대의 고전주의자'로 불리는 작곡가는?",a:'브람스',w:['리스트','바그너','베를리오즈'],n:'리스트·바그너의 진보(표제음악)와 대비되는 보수파.'},
+{q:'바흐 마태수난곡 부흥 공연으로 바흐 재평가에 기여했고 형식이 고전적인 낭만 작곡가는?',a:'멘델스존',w:['슈만','브람스','리스트'],n:'무언가, 바이올린 협주곡 e단조.'},
+{q:'오이제비우스·플로레스탄이라는 두 자아를 음악화한 성격소품·평론가 작곡가는?',a:'슈만',w:['멘델스존','슈베르트','쇼팽'],n:'Widmung(헌정), 트로이메라이.'},
+{q:"'트로이메라이(Träumerei)'가 수록된 슈만의 피아노 모음곡은?",a:'어린이의 정경(Kinderszenen)',w:['카니발(Carnaval)','크라이슬레리아나','사육제'],n:''},
+{q:"독일 예술가곡을 확립해 '가곡의 왕'으로 불리며 Erlkönig를 작곡한 인물은?",a:'슈베르트',w:['슈만','브람스','볼프'],n:''},
+{q:'Caprice No.24로 유명하고 후대 변주곡의 주제가 된 바이올린 비르투오소는?',a:'파가니니',w:['사라사테','크라이슬러','비에냐프스키'],n:'악마적 기교, 거장 숭배 문화의 상징.'},
+{q:"폴란드 춤곡 마주르카·폴로네이즈를 예술음악으로 승화한 '피아노의 시인'은?",a:'쇼팽',w:['리스트','슈만','쇼스타코비치'],n:'영웅 폴로네즈, 녹턴.'},
+{q:'파가니니에게 영향받아 피아노 초절기교를 실현하고 독주회를 정착시킨 인물은?',a:'리스트',w:['쇼팽','탈베르크','클라라 슈만'],n:'주제적 변용, 교향시 창안.'},
+{q:"'라 캄파넬라'와 초절기교 연습곡 '마제파'를 작곡한 인물은?",a:'리스트',w:['파가니니','쇼팽','라흐마니노프'],n:''},
+{q:'벨칸토 오페라의 대표 작곡가 묶음으로 옳은 것은?',a:'로시니·벨리니·도니체티',w:['베르디·푸치니·마스카니','비제·구노·생상스','바그너·R.슈트라우스·말러'],n:''},
+{q:'William Tell 서곡과 점진적 고조(크레셴도)로 유명한 작곡가는?',a:'로시니',w:['베르디','도니체티','벨리니'],n:''},
+{q:'평민의 질투·폭력·현실적 비극을 짧고 강렬하게 다루는 오페라 사조는?',a:'베리스모',w:['벨칸토','오페라 부파','징슈필'],n:'마스카니·레온카발로·푸치니.'},
+{q:"Cavalleria Rusticana의 'Intermezzo'를 작곡한 베리스모 작곡가는?",a:'마스카니',w:['레온카발로','푸치니','베르디'],n:''},
+{q:"'Vesti la giubba'(의상을 입어라)가 나오는 오페라 Pagliacci의 작곡가는?",a:'레온카발로',w:['마스카니','푸치니','베르디'],n:''},
+{q:"'Nessun dorma'(아무도 잠들지 말라)가 나오는 오페라는?",a:'투란도트(Turandot)',w:['리골레토','카르멘','토스카'],n:'푸치니.'},
+{q:"'O mio babbino caro'(사랑하는 나의 아버지)를 작곡한 인물은?",a:'푸치니',w:['베르디','마스카니','레온카발로'],n:'잔니 스키키.'},
+{q:"'La donna è mobile'(여자의 마음)가 나오는 베르디 오페라는?",a:'리골레토(Rigoletto)',w:['아이다','라 트라비아타','나부코'],n:''},
+{q:"Requiem의 'Dies irae'로 유명한 이탈리아 낭만 오페라의 정점 작곡가는?",a:'베르디',w:['푸치니','로시니','벨리니'],n:''},
+{q:'현실적 인물·하층민의 욕망을 다뤄 베리스모로 가는 길을 연 Carmen의 작곡가는?',a:'비제',w:['구노','생상스','마스네'],n:''},
+{q:"'동물의 사육제'(백조·거북이·수족관)를 작곡한 프랑스 작곡가는?",a:'생상스',w:['라벨','드뷔시','포레'],n:''},
+{q:'오페레타·캉캉으로 유명하며 Orpheus in the Underworld를 작곡한 인물은?',a:'오펜바흐',w:['구노','비제','로시니'],n:'천국과 지옥.'},
+{q:"Symphony No.9 'From the New World'를 작곡한 체코 민족주의 작곡가는?",a:'드보르자크',w:['스메타나','시벨리우스','그리그'],n:''},
+{q:'Peer Gynt의 Morning Mood와 피아노 협주곡 a단조로 유명한 노르웨이 작곡가는?',a:'그리그',w:['시벨리우스','드보르자크','스메타나'],n:''},
+{q:'Finlandia와 바이올린 협주곡 d단조로 유명한 핀란드 민족주의 작곡가는?',a:'시벨리우스',w:['그리그','닐센','스메타나'],n:''},
+{q:"'왕벌의 비행'과 'Scheherazade'(천일야화)를 작곡한 러시아 5인조 멤버는?",a:'림스키코르사코프',w:['무소륵스키','보로딘','발라키레프'],n:'해군 장교 출신, 관현악 색채의 대가.'},
+{q:"'전람회의 그림'을 작곡한, 러시아적 사실주의를 중시한 5인조 멤버는?",a:'무소륵스키',w:['림스키코르사코프','차이콥스키','글린카'],n:''},
+{q:'러시아인이지만 5인조가 아니며 발레음악의 대가인 작곡가는?',a:'차이콥스키',w:['무소륵스키','보로딘','림스키코르사코프'],n:'호두까기인형, 비창.'},
+{q:'파가니니 주제에 의한 랩소디와 피아노 협주곡 3번을 작곡한 후기 낭만 작곡가는?',a:'라흐마니노프',w:['차이콥스키','스크랴빈','프로코피예프'],n:''},
+{q:"Die Walküre '발퀴레의 기행'과 Lohengrin '결혼 합창'을 작곡한 인물은?",a:'바그너',w:['R. 슈트라우스','브루크너','말러'],n:''},
+{q:'교향곡 5번 4악장 아다지에토로 유명하며 후기 낭만의 거대 스케일을 대표하는 작곡가는?',a:'말러',w:['브루크너','R. 슈트라우스','시벨리우스'],n:''},
+{q:"교향시 'Also sprach Zarathustra'를 작곡한, 바그너 이후 세대의 관현악 대가는?",a:'리하르트 슈트라우스',w:['요한 슈트라우스 2세','말러','브루크너'],n:''},
+{q:'Radetzky March로 유명한 작곡가는?',a:'요한 슈트라우스 1세',w:['요한 슈트라우스 2세','오펜바흐','레하르'],n:''},
+{q:"'왈츠의 왕'으로 불리며 '봄의 소리 왈츠'를 작곡한 인물은?",a:'요한 슈트라우스 2세',w:['요한 슈트라우스 1세','요제프 란너','레하르'],n:''},
+{q:"'사랑의 인사(Salut d'amour)'와 위풍당당 행진곡으로 유명한 영국 작곡가는?",a:'엘가',w:['홀스트','본 윌리엄스','브리튼'],n:''},
+{q:'트레몰로 기법의 Recuerdos de la Alhambra로 유명한 클래식 기타 작곡가는?',a:'타레가',w:['사라사테','파야','그라나도스'],n:''},
+{q:'인상주의 음악의 대표 작곡가 묶음은?',a:'드뷔시·라벨',w:['쇤베르크·베베른','스트라빈스키·바르토크','거슈윈·바버'],n:''},
+{q:"'달빛'과 '목신의 오후 전주곡'을 작곡한 인상주의 작곡가는?",a:'드뷔시',w:['라벨','사티','포레'],n:'온음음계, 모호한 조성.'},
+{q:"'볼레로'와 '물의 유희(Jeux d'eau)'로 유명한 관현악의 대가는?",a:'라벨',w:['드뷔시','사티','생상스'],n:''},
+{q:'12음 기법과 무조성을 확립한 제2빈악파의 중심 인물은?',a:'쇤베르크',w:['스트라빈스키','베르크','리게티'],n:'제2빈악파: 쇤베르크·베베른·베르크.'},
+{q:'제2빈악파를 구성하는 세 작곡가로 옳은 것은?',a:'쇤베르크·베베른·베르크',w:['드뷔시·라벨·사티','스트라빈스키·프로코피예프·쇼스타코비치','거슈윈·바버·케이지'],n:''},
+{q:"원시주의의 대표작 'The Rite of Spring(봄의 제전)'을 작곡한 인물은?",a:'스트라빈스키',w:['바르토크','프로코피예프','리게티'],n:'후기에는 신고전주의 경향.'},
+{q:'신고전주의 경향과 Peter and the Wolf로 유명하며 스탈린과 같은 날 사망한 작곡가는?',a:'프로코피예프',w:['쇼스타코비치','스트라빈스키','하차투리안'],n:''},
+{q:"'루마니아 민속 무곡'과 불가리아 리듬, 민속음악 연구로 유명한 헝가리 작곡가는?",a:'바르토크',w:['리게티','코다이','에네스쿠'],n:''},
+{q:"재즈와 클래식을 결합한 'Rhapsody in Blue'의 작곡가는?",a:'거슈윈',w:['바버','코플랜드','번스타인'],n:''},
+{q:"'Summertime'이 수록된 거슈윈의 오페라는?",a:'포기와 베스(Porgy and Bess)',w:['칸디드','웨스트 사이드 스토리','쇼보트'],n:''},
+{q:"환경음·침묵·청중 반응이 음악이 되는 '4분 33초'의 작곡가는?",a:'존 케이지',w:['리게티','슈톡하우젠','사티'],n:'우연음악, I Ching과 연결.'},
+{q:"소비에트 체제에서 풍자를 담았고 'Waltz No.2'와 교향곡 10번으로 유명한 작곡가는?",a:'쇼스타코비치',w:['프로코피예프','하차투리안','스트라빈스키'],n:''},
+{q:"반도네온의 누에보 탱고로 'Libertango'를 작곡한 아르헨티나 작곡가는?",a:'피아졸라',w:['히나스테라','빌라로부스','로드리고'],n:''},
+{q:'연가곡(Song Cycle)의 예로 옳은 것은?',a:'슈베르트 겨울나그네',w:['리스트 교향시','베를리오즈 환상교향곡','쇤베르크 달에 홀린 피에로'],n:''},
+{q:'주로 피아노를 위한 짧은 곡으로 특정 분위기·정서를 표현하는 낭만 장르는?',a:'성격소품(Character Piece)',w:['교향시','연가곡','연주회용 연습곡'],n:'녹턴·무언가·트로이메라이·인터메초.'},
+{q:'절대음악에 해당하는 제목 형식으로 가장 알맞은 것은?',a:'교향곡 제3번 e단조, Op.90',w:['환상교향곡','핀란디아','몰다우'],n:'번호·조성·작품번호 중심.'},
+];
+
+
 /* ===================== HELPERS ===================== */
 const $=s=>document.querySelector(s);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
 function fmt(s){s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
   return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
-function show(id){['start','quiz','card','result','study'].forEach(s=>$('#screen-'+s).classList.toggle('hidden',s!==id));
+function show(id){['start','quiz','card','result','study','tstudy','tquiz','tresult'].forEach(s=>$('#screen-'+s).classList.toggle('hidden',s!==id));
   currentScreen=id;window.scrollTo({top:0,behavior:'smooth'});}
 let currentScreen='start';
 
@@ -502,7 +696,8 @@ function onYouTubeIframeAPIReady(){
 let awaiting=false,watchdog=null;
 function onState(e){
   if(e.data===YT.PlayerState.PLAYING||e.data===YT.PlayerState.BUFFERING){awaiting=false;clearTimeout(watchdog);}
-  if(e.data===YT.PlayerState.PLAYING){T.playing=true;T.render();}
+  if(e.data===YT.PlayerState.PLAYING){T.playing=true;T.render();
+    if(autoMode&&autoArmed&&!autoActive)startCountdown();}
   else if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.ENDED){T.playing=false;T.render();}
 }
 function onErr(e){awaiting=false;clearTimeout(watchdog);
@@ -547,6 +742,12 @@ const T={
     if(this.loadedId===this.piece.id){const d=player.getDuration()||0;if(d>0)player.seekTo(f*d,true);}
     else{this.load(this.piece,f);}
   },
+  nudge(sec){
+    if(!this.piece||!ytReady||this.loadedId!==this.piece.id)return;
+    const d=player.getDuration()||0,c=player.getCurrentTime()||0;
+    let t=c+sec;if(t<0)t=0;if(d>0&&t>d-0.3)t=Math.max(0,d-0.3);
+    player.seekTo(t,true);
+  },
   render(){
     const r=this.refs;if(!r)return;
     const on=this.playing;
@@ -564,8 +765,37 @@ function tick(){
   if(!T.dragging&&d>0){const f=Math.min(1,c/d);$(r.fill).style.width=(f*100)+'%';$(r.handle).style.left=(f*100)+'%';}
   $(r.cur).textContent=fmt(c);
   $(r.dur).textContent=r.hideDur?'':(d>0?fmt(d):'');
+  autoTick();
 }
 setInterval(tick,200);
+
+/* ===================== AUTO-PROGRESS ===================== */
+let autoMode=false;
+const AUTO_SECS=45;
+let autoActive=false,autoArmed=false,autoRemaining=AUTO_SECS,autoLast=0,autoAdvanceT=null;
+function cdRefs(){return currentScreen==='study'
+  ?{wrap:'#sCountdownWrap',bar:'#sCountdown',num:'#sCdNum'}
+  :{wrap:'#qCountdownWrap',bar:'#qCountdown',num:'#qCdNum'};}
+function showCountdown(on){const w=$(cdRefs().wrap);if(w)w.classList.toggle('hidden',!on);}
+function resetCountdownUI(){const r=cdRefs();const b=$(r.bar),n=$(r.num);if(b)b.style.width='100%';if(n)n.textContent=AUTO_SECS;}
+function startCountdown(){autoActive=true;autoArmed=false;autoRemaining=AUTO_SECS;autoLast=performance.now();showCountdown(true);resetCountdownUI();}
+function stopCountdown(){autoActive=false;autoArmed=false;clearTimeout(autoAdvanceT);showCountdown(false);}
+function autoTick(){
+  if(!autoActive)return;
+  const now=performance.now();
+  const playing=player.getPlayerState&&player.getPlayerState()===YT.PlayerState.PLAYING;
+  if(playing)autoRemaining-=(now-autoLast)/1000;
+  autoLast=now;
+  const r=cdRefs(),b=$(r.bar),n=$(r.num);
+  const frac=Math.max(0,autoRemaining/AUTO_SECS);
+  if(b)b.style.width=(frac*100)+'%';
+  if(n)n.textContent=Math.max(0,Math.ceil(autoRemaining));
+  if(autoRemaining<=0){autoActive=false;onAutoExpire();}
+}
+function onAutoExpire(){
+  if(currentScreen==='quiz')quizTimeUp();
+  else if(currentScreen==='study')studyAutoNext();
+}
 
 function wireTransport(r){
   $(r.fab).addEventListener('click',()=>T.toggle());
@@ -578,7 +808,9 @@ function wireTransport(r){
   bar.addEventListener('pointerup',e=>{if(T.dragging){const f=fracAt(e);T.dragging=false;T.seekFrac(f);}});
   bar.addEventListener('pointercancel',()=>{T.dragging=false;});
   const pcts=$(r.pcts);
+  const back=document.createElement('button');back.className='pct-btn nudge';back.innerHTML='&#10094; 5s';back.title='5초 뒤로';back.onclick=()=>T.nudge(-5);pcts.appendChild(back);
   for(let p=0;p<=90;p+=10){const b=document.createElement('button');b.className='pct-btn';b.textContent=p;b.onclick=()=>T.seekFrac(p/100);pcts.appendChild(b);}
+  const fwd=document.createElement('button');fwd.className='pct-btn nudge';fwd.innerHTML='5s &#10095;';fwd.title='5초 앞으로';fwd.onclick=()=>T.nudge(5);pcts.appendChild(fwd);
 }
 const quizRefs={fab:'#qFab',icon:'#qFabIcon',bar:'#qBar',fill:'#qFill',handle:'#qHandle',cur:'#qCur',dur:'#qDur',pcts:'#qPcts',stage:'#qStage',hint:'#qHint',title:null,hideDur:true};
 const studyRefs={fab:'#sFab',icon:'#sFabIcon',bar:'#sBar',fill:'#sFill',handle:'#sHandle',cur:'#sCur',dur:'#sDur',pcts:'#sPcts',stage:null,hint:null,title:'#sTitle',hideDur:false};
@@ -588,12 +820,30 @@ wireTransport(quizRefs);wireTransport(studyRefs);wireTransport(cardRefs);
 function stopAudio(){if(ytReady){try{player.stopVideo();}catch(_){}}T.playing=false;T.loadedId=null;}
 
 /* ===================== START SCREEN ===================== */
-let mode='quiz',count=20,cardScope='all';
+let subject='listen',mode='quiz',count=20,cardScope='all',tMode='study',tCount=25;
+function updateStartBtn(){
+  $('#startBtn').textContent =
+    subject==='theory' ? (tMode==='study'?'개념 학습 시작':'개념 시험 시작')
+    : mode==='quiz'?'시험 시작':mode==='card'?'암기 시작':'연습 시작';
+}
+$('#subjectSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;subject=b.dataset.sub;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#listenBlock').classList.toggle('hidden',subject!=='listen');
+  $('#theoryBlock').classList.toggle('hidden',subject!=='theory');
+  $('#pinEntry').classList.toggle('hidden',subject!=='listen'||pins.size===0);
+  updateStartBtn();});
+$('#tModeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tMode=b.dataset.tmode;
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#tCountWrap').classList.toggle('hidden',tMode!=='quiz');updateStartBtn();});
+$('#tCountSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  tCount=b.dataset.tc==='all'?Infinity:parseInt(b.dataset.tc,10);
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mode=b.dataset.mode;
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));
   $('#quizOpts').classList.toggle('hidden',mode!=='quiz');
   $('#cardOpts').classList.toggle('hidden',mode!=='card');
-  $('#startBtn').textContent=mode==='quiz'?'시험 시작':mode==='card'?'암기 시작':'연습 시작';});
+  $('#autoRow').classList.toggle('hidden',mode==='card');
+  updateStartBtn();});
 $('#startSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;startMode=b.dataset.start;
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#countSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -601,7 +851,10 @@ $('#countSeg').addEventListener('click',e=>{const b=e.target.closest('button');i
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#scopeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cardScope=b.dataset.scope;
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
+$('#autoSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;autoMode=b.dataset.auto==='on';
+  [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));});
 $('#startBtn').addEventListener('click',()=>{
+  if(subject==='theory'){ tMode==='study'?openTheoryStudy():startTheoryQuiz(tCount); return; }
   if(mode==='study'){openStudy();}
   else if(mode==='card'){
     const pool=cardScope==='pin'?[...pins].map(idxOf).filter(i=>i>=0):[...PIECES.keys()];
@@ -627,8 +880,10 @@ function pickDistractors(correct){
   const rest=shuffle(others.filter(p=>!same.includes(p)));
   return shuffle([...same,...rest].slice(0,3));
 }
+let qResolved=false;
 function loadQuestion(){
-  stopAudio();
+  stopCountdown();stopAudio();
+  qResolved=false;
   const piece=PIECES[order[qIndex]];const total=order.length;
   T.setPiece(piece);
   $('#qCounter').textContent=`Question ${qIndex+1} / ${total}`;
@@ -642,26 +897,48 @@ function loadQuestion(){
   opts.forEach((p,i)=>{const b=document.createElement('button');b.className='opt';
     b.innerHTML=`<span class="marker">${L[i]}</span><span><span class="o-main">${label(p)}</span>${p.ko?`<span class="o-ko">${p.ko}</span>`:''}</span>`;
     b.onclick=()=>choose(p,piece,b,box);box.appendChild(b);});
+
+  if(autoMode){autoArmed=true;showCountdown(true);resetCountdownUI();if(ytReady)T.toggle();}
+  else{showCountdown(false);}
 }
+function revealCorrect(correct){
+  $('#options').querySelectorAll('.opt').forEach(b=>{b.disabled=true;
+    if(b.querySelector('.o-main').textContent===label(correct))b.classList.add('correct');});
+}
+function afterAnswerFlow(){
+  if(autoMode){$('#nextBtn').classList.add('hidden');
+    autoAdvanceT=setTimeout(advanceQuiz,2300);}
+  else{const nb=$('#nextBtn');nb.classList.remove('hidden');
+    nb.textContent=(qIndex+1<order.length)?'다음 곡 →':'결과 보기 →';
+    nb.onclick=advanceQuiz;}
+}
+function advanceQuiz(){stopCountdown();qIndex++;qIndex<order.length?loadQuestion():showResult();}
 function choose(picked,correct,btn,box){
+  if(qResolved)return;qResolved=true;stopCountdown();
   const right=picked===correct;if(right)score++;
   answers.push({piece:correct,right,picked});
-  box.querySelectorAll('.opt').forEach(b=>{b.disabled=true;
-    if(b.querySelector('.o-main').textContent===label(correct))b.classList.add('correct');});
+  revealCorrect(correct);
   let pinNote='';
   if(!right){btn.classList.add('wrong');addPin(correct.id);pinNote='<div class="pinned-note">★ 오답노트에 자동으로 담았어요</div>';}
   $('#feedback').innerHTML=right
     ?`<div class="verdict ok display">정답입니다</div>`
     :`<div class="verdict no display">아쉬워요</div><div class="answer">정답: ${label(correct)}${correct.ko?' · '+correct.ko:''}</div>${pinNote}`;
-  const nb=$('#nextBtn');nb.classList.remove('hidden');
-  nb.textContent=(qIndex+1<order.length)?'다음 곡 →':'결과 보기 →';
-  nb.onclick=()=>{qIndex++;qIndex<order.length?loadQuestion():showResult();};
+  afterAnswerFlow();
 }
-$('#quitBtn').addEventListener('click',()=>{stopAudio();show('start');});
+function quizTimeUp(){
+  if(qResolved)return;qResolved=true;
+  const correct=PIECES[order[qIndex]];
+  answers.push({piece:correct,right:false,picked:null});
+  addPin(correct.id);revealCorrect(correct);
+  $('#feedback').innerHTML=`<div class="verdict no display">시간 초과</div><div class="answer">정답: ${label(correct)}${correct.ko?' · '+correct.ko:''}</div><div class="pinned-note">오답 처리 · ★ 오답노트에 담았어요</div>`;
+  afterAnswerFlow();
+}
+$('#quitBtn').addEventListener('click',()=>{stopCountdown();stopAudio();show('start');});
 
 /* ===================== FLASHCARD (암기) ===================== */
 let cardOrder=[],cIndex=0,flipped=false;
 function startCards(pool){
+  stopCountdown();
   cardOrder=shuffle(pool);cIndex=0;
   T.use(cardRefs);$('#cFab').disabled=!ytReady;show('card');loadCard();
 }
@@ -710,7 +987,7 @@ $('#cardQuit').addEventListener('click',()=>{stopAudio();show('start');});
 
 
 function showResult(){
-  stopAudio();show('result');
+  stopCountdown();stopAudio();show('result');
   const total=order.length;
   $('#scoreNum').textContent=score;$('#scoreDen').textContent=' / '+total;
   const pct=score/total;
@@ -744,13 +1021,28 @@ function makeRow(p,opt){
     <button class="mini-play" aria-label="듣기"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></button>`;
   const star=row.querySelector('.pin-star');
   star.onclick=()=>{togglePin(p.id);star.classList.toggle('on',pins.has(p.id));star.textContent=pins.has(p.id)?'★':'☆';};
-  row.querySelector('.mini-play').onclick=()=>{T.use(currentScreen==='study'?studyRefs:quizRefs);T.playPiece(p);};
+  row.querySelector('.mini-play').onclick=()=>onRowPlay(p);
   return row;
+}
+function onRowPlay(p){
+  if(currentScreen==='study'&&autoMode){const i=studyAutoList.indexOf(p);studyAutoPlay(i>=0?i:0);}
+  else{T.use(currentScreen==='study'?studyRefs:quizRefs);T.playPiece(p);}
 }
 
 /* ===================== STUDY ===================== */
-let studyFilter='all';
-function openStudy(){T.use(studyRefs);$('#sFab').disabled=!ytReady;buildStudy();show('study');}
+let studyFilter='all',studyAutoList=[],studyAutoIdx=0;
+function openStudy(){
+  T.use(studyRefs);$('#sFab').disabled=!ytReady;buildStudy();show('study');stopCountdown();
+  if(autoMode&&studyAutoList.length){studyAutoPlay(0);}else{showCountdown(false);}
+}
+function studyAutoPlay(i){
+  if(i>=studyAutoList.length){endStudyAuto();return;}
+  studyAutoIdx=i;const p=studyAutoList[i];
+  T.use(studyRefs);T.playPiece(p);
+  autoArmed=true;showCountdown(true);resetCountdownUI();
+}
+function studyAutoNext(){studyAutoPlay(studyAutoIdx+1);}
+function endStudyAuto(){stopCountdown();const t=$('#sTitle');if(t)t.innerHTML=`자동 재생 종료<small>목록 끝까지 재생했어요</small>`;}
 function buildStudy(){
   const q=($('#studySearch').value||'').trim().toLowerCase();
   const list=$('#studyList');list.innerHTML='';
@@ -759,6 +1051,7 @@ function buildStudy(){
     if(q){const hay=(p.c+' '+p.t+' '+(p.ko||'')).toLowerCase();if(!hay.includes(q))return false;}
     return true;
   });
+  studyAutoList=arr;
   if(!arr.length){list.innerHTML=`<div class="empty">${studyFilter==='pin'?'아직 ★ 핀한 곡이 없어요. 곡 옆 ☆를 눌러 담아보세요.':'검색 결과가 없어요.'}</div>`;return;}
   arr.forEach(p=>list.appendChild(makeRow(p,{mode:'study'})));
 }
@@ -767,7 +1060,75 @@ $('#studyFilter').addEventListener('click',e=>{const b=e.target.closest('button'
   [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',x===b));buildStudy();});
 $('#pinQuizBtn').addEventListener('click',()=>{if(pins.size)startQuiz([...pins].map(idxOf).filter(i=>i>=0),Infinity,true);});
 $('#pinClearBtn').addEventListener('click',()=>{if(pins.size&&confirm('핀한 곡을 모두 비울까요?')){pins.clear();savePins();refreshPinUI();buildStudy();}});
-$('#studyQuit').addEventListener('click',()=>{stopAudio();show('start');});
+$('#studyQuit').addEventListener('click',()=>{stopCountdown();stopAudio();show('start');});
+
+/* ===================== THEORY STUDY ===================== */
+function openTheoryStudy(){stopCountdown();stopAudio();show('tstudy');buildConcepts();}
+function buildConcepts(){
+  const q=($('#tSearch').value||'').trim().toLowerCase();
+  const list=$('#conceptList');list.innerHTML='';
+  const arr=CONCEPTS.filter(c=>{if(!q)return true;
+    const hay=(c.title+' '+c.tags+' '+c.pts.join(' ')).toLowerCase();return hay.includes(q);});
+  if(!arr.length){list.innerHTML='<div class="empty">검색 결과가 없어요.</div>';return;}
+  arr.forEach(c=>{const d=document.createElement('div');d.className='concept';
+    d.innerHTML=`<h3>${c.title}</h3><div class="tags">${c.tags}</div><ul>${c.pts.map(p=>`<li>${p}</li>`).join('')}</ul>`;
+    list.appendChild(d);});
+}
+$('#tSearch').addEventListener('input',buildConcepts);
+$('#tStudyQuit').addEventListener('click',()=>show('start'));
+
+/* ===================== THEORY QUIZ ===================== */
+let tOrder=[],tIndex=0,tScore=0,tAnswers=[];
+function startTheoryQuiz(cnt){
+  stopCountdown();stopAudio();
+  const n=cnt===Infinity?THEORY_BANK.length:Math.min(cnt,THEORY_BANK.length);
+  tOrder=shuffle([...THEORY_BANK.keys()]).slice(0,n);
+  tIndex=0;tScore=0;tAnswers=[];show('tquiz');loadTQuestion();
+}
+function loadTQuestion(){
+  const item=THEORY_BANK[tOrder[tIndex]];const total=tOrder.length;
+  $('#tCounter').textContent=`문제 ${tIndex+1} / ${total}`;
+  $('#tProg').style.width=`${(tIndex/total)*100}%`;
+  $('#tQuestion').textContent=item.q;
+  $('#tFeedback').innerHTML='';$('#tNext').classList.add('hidden');
+  const opts=shuffle([item.a,...item.w]);const L=['A','B','C','D'];
+  const box=$('#tOptions');box.innerHTML='';
+  opts.forEach((o,i)=>{const b=document.createElement('button');b.className='opt';
+    b.innerHTML=`<span class="marker">${L[i]}</span><span><span class="o-main">${o}</span></span>`;
+    b.onclick=()=>tChoose(o,item,b,box);box.appendChild(b);});
+}
+function tChoose(picked,item,btn,box){
+  const right=picked===item.a;if(right)tScore++;
+  tAnswers.push({item,picked,right});
+  box.querySelectorAll('.opt').forEach(b=>{b.disabled=true;
+    if(b.querySelector('.o-main').textContent===item.a)b.classList.add('correct');});
+  if(!right)btn.classList.add('wrong');
+  $('#tFeedback').innerHTML=(right
+    ?`<div class="verdict ok display">정답입니다</div>`
+    :`<div class="verdict no display">아쉬워요</div><div class="answer">정답: ${item.a}</div>`)
+    +(item.n?`<div class="pinned-note" style="color:var(--muted)">${item.n}</div>`:'');
+  const nb=$('#tNext');nb.classList.remove('hidden');
+  nb.textContent=(tIndex+1<tOrder.length)?'다음 →':'결과 보기 →';
+  nb.onclick=()=>{tIndex++;tIndex<tOrder.length?loadTQuestion():showTResult();};
+}
+function showTResult(){
+  show('tresult');const total=tOrder.length;
+  $('#tScoreNum').textContent=tScore;$('#tScoreDen').textContent=' / '+total;
+  const pct=tScore/total;
+  $('#tScoreMsg').textContent=pct===1?'완벽해요! 개념 완전 정복.':
+    pct>=.75?'좋아요. 틀린 개념만 다시 학습하면 돼요.':
+    pct>=.5?'절반은 잡았어요. 개념 학습으로 복습해봐요.':'개념 학습부터 차근차근 정리해봐요.';
+  const rev=$('#tReview');rev.innerHTML='';
+  tAnswers.forEach(a=>{const d=document.createElement('div');d.className='row';
+    d.innerHTML=`<span class="dot ${a.right?'ok':'no'}"></span>
+      <div class="body"><div class="rev-q">${a.item.q}</div>
+      <div class="rev-a">${a.right?`<span class="ok">정답: ${a.item.a}</span>`
+        :`<span class="no">내 답: ${a.picked}</span> · <span class="ok">정답: ${a.item.a}</span>`}</div></div>`;
+    rev.appendChild(d);});
+}
+$('#tRestart').addEventListener('click',()=>startTheoryQuiz(tCount));
+$('#tToStudy').addEventListener('click',openTheoryStudy);
+$('#tQuit').addEventListener('click',()=>show('start'));
 
 /* ===================== INIT ===================== */
 loadPins();refreshPinUI();
